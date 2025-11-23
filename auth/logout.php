@@ -17,6 +17,6 @@ if (ini_get("session.use_cookies")) {
 session_destroy();
 
 // Redirect to homepage
-header("Location: ../homepage.php");
+header("Location: /version2/homepage.php");
 exit();
 ?>

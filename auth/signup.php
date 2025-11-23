@@ -3,8 +3,8 @@ require_once '../includes/config.php';
 
 // Redirect if already logged in
 if (isset($_SESSION['user_id'])) {
-    header("Location: " . ($_SESSION['role'] === 'admin' ? '../admin_dashboard.php' : 
-                          ($_SESSION['role'] === 'staff' ? '../staff_dashboard.php' : '../dashboard.php')));
+    header("Location: /version2/" . ($_SESSION['role'] === 'admin' ? 'admin/admin_dashboard.php' : 
+                          ($_SESSION['role'] === 'staff' ? 'hotel staff/staff_dashboard.php' : 'guest/guest_dashboard.php')));
     exit();
 }
 

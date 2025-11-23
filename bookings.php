@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$booking_id, $user_id]);
         $_SESSION['success'] = "Booking cancelled successfully!";
     }
-    header("Location: bookings.php");
+    header("Location: /version2/bookings.php");
     exit();
 }
 
@@ -84,26 +84,26 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
             <ul class="sidebar-menu">
                 <?php if (isAdmin()): ?>
-                    <li><a href="admin_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="manage_staff.php"><i class="fas fa-users-cog"></i> Manage Staff</a></li>
-                    <li><a href="manage_rooms.php"><i class="fas fa-bed"></i> Manage Rooms</a></li>
-                    <li><a href="bookings.php" class="active"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
-                    <li><a href="payments.php"><i class="fas fa-credit-card"></i> Payment Records</a></li>
-                    <li><a href="reports.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                    <li><a href="/version2/admin/admin_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="/version2/admin/manage_staff.php"><i class="fas fa-users-cog"></i> Manage Staff</a></li>
+                    <li><a href="/version2/admin/manage_rooms.php"><i class="fas fa-bed"></i> Manage Rooms</a></li>
+                    <li><a href="/version2/bookings.php" class="active"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
+                    <li><a href="/version2/admin/payments.php"><i class="fas fa-credit-card"></i> Payment Records</a></li>
+                    <li><a href="/version2/admin/reports.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
                 <?php elseif (isStaff()): ?>
-                    <li><a href="staff_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="staff_checkin.php"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
-                    <li><a href="staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
-                    <li><a href="staff_reservations.php"><i class="fas fa-calendar-check"></i> Reservations</a></li>
-                    <li><a href="staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
-                    <li><a href="bookings.php" class="active"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
+                    <li><a href="/version2/hotel staff/staff_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="/version2/hotel staff/staff_checkin.php"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
+                    <li><a href="/version2/hotel staff/staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
+                    <li><a href="/version2/hotel staff/staff_reservations.php"><i class="fas fa-calendar-check"></i> Reservations</a></li>
+                    <li><a href="/version2/hotel staff/staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
+                    <li><a href="/version2/bookings.php" class="active"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
                 <?php else: ?>
-                    <li><a href="guest_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="rooms.php"><i class="fas fa-bed"></i> Book Rooms</a></li>
-                    <li><a href="bookings.php" class="active"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
-                    <li><a href="profile.php"><i class="fas fa-user"></i> Profile</a></li>
+                    <li><a href="/version2/guest/guest_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="/version2/guest/rooms.php"><i class="fas fa-bed"></i> Book Rooms</a></li>
+                    <li><a href="/version2/bookings.php" class="active"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
+                    <li><a href="/version2/guest/profile.php"><i class="fas fa-user"></i> Profile</a></li>
                 <?php endif; ?>
-                <li><a href="auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a href="/version2/auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </aside>
 
@@ -129,7 +129,7 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <?php echo (isAdmin() || isStaff()) ? 'There are no bookings in the system yet.' : 'You haven\'t made any bookings yet.'; ?>
                     </p>
                     <?php if (isGuest()): ?>
-                        <a href="rooms.php" class="btn btn-primary">Book Your First Room</a>
+                        <a href="/version2/guest/rooms.php" class="btn btn-primary">Book Your First Room</a>
                     <?php endif; ?>
                 </div>
             <?php else: ?>
@@ -148,7 +148,8 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <th>Check-out</th>
                                     <th>Guests</th>
                                     <th>Total Price</th>
-                                    <th>Status</th>
+                                    <th>Booking Status</th>
+                                    <th>Payment Status</th>
                                     <th>Booked On</th>
                                     <th>Actions</th>
                                 </tr>
@@ -169,6 +170,31 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <td>
                                         <span class="status <?php echo $booking['status']; ?>">
                                             <?php echo ucfirst($booking['status']); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?php 
+                                        $payment_status = $booking['payment_status'] ?? 'pending';
+                                        $payment_class = '';
+                                        $payment_icon = '';
+                                        
+                                        switch($payment_status) {
+                                            case 'paid':
+                                                $payment_class = 'confirmed';
+                                                $payment_icon = 'fa-check-circle';
+                                                break;
+                                            case 'refunded':
+                                                $payment_class = 'cancelled';
+                                                $payment_icon = 'fa-undo';
+                                                break;
+                                            default:
+                                                $payment_class = 'pending';
+                                                $payment_icon = 'fa-clock';
+                                        }
+                                        ?>
+                                        <span class="status <?php echo $payment_class; ?>" style="display: inline-flex; align-items: center; gap: 5px;">
+                                            <i class="fas <?php echo $payment_icon; ?>" style="font-size: 0.85rem;"></i>
+                                            <?php echo ucfirst($payment_status); ?>
                                         </span>
                                     </td>
                                     <td><?php echo date('M j, Y', strtotime($booking['created_at'])); ?></td>
@@ -192,7 +218,18 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                 <?php endif; ?>
                                             <?php else: ?>
                                                 <!-- Guest Actions -->
-                                                <?php if ($booking['status'] === 'pending' || $booking['status'] === 'confirmed'): ?>
+                                                <?php if ($payment_status === 'pending'): ?>
+                                                    <!-- Pay Now Button for Unpaid Bookings -->
+                                                    <a href="/version2/guest/process_payment.php?booking_id=<?php echo $booking['booking_id']; ?>" 
+                                                       class="btn btn-primary" 
+                                                       style="background: linear-gradient(135deg, #5C2D91, #7C3AAF); border: none; display: inline-flex; align-items: center; gap: 5px;">
+                                                        <i class="fas fa-credit-card"></i>
+                                                        Pay Now
+                                                    </a>
+                                                <?php endif; ?>
+                                                
+                                                <?php if ($booking['status'] === 'pending' && $payment_status === 'pending'): ?>
+                                                    <!-- Allow cancel only if not paid -->
                                                     <form method="POST" style="display: inline;">
                                                         <input type="hidden" name="booking_id" value="<?php echo $booking['booking_id']; ?>">
                                                         <button type="submit" name="cancel_booking" class="btn btn-danger" 
@@ -200,7 +237,12 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                             Cancel
                                                         </button>
                                                     </form>
-                                                <?php else: ?>
+                                                <?php elseif ($payment_status === 'paid' && ($booking['status'] === 'pending' || $booking['status'] === 'confirmed')): ?>
+                                                    <!-- If paid, show contact staff message -->
+                                                    <span style="color: #6c757d; font-size: 0.85rem; font-style: italic;">
+                                                        <i class="fas fa-info-circle"></i> Contact staff to cancel
+                                                    </span>
+                                                <?php elseif ($booking['status'] === 'checked_in' || $booking['status'] === 'checked_out'): ?>
                                                     <span style="color: #6c757d; font-size: 0.9rem;"><?php echo ucfirst($booking['status']); ?></span>
                                                 <?php endif; ?>
                                             <?php endif; ?>

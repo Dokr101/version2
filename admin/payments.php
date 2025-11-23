@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/config.php';
+require_once '../includes/config.php';
 requireAdmin();
 
 // Get all payments
@@ -39,13 +39,13 @@ $total_revenue = $stmt->fetch(PDO::FETCH_ASSOC)['total_revenue'] ?? 0;
                 <div class="logo-subtitle">Admin Panel</div>
             </div>
             <ul class="sidebar-menu">
-                <li><a href="admin_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="manage_staff.php"><i class="fas fa-users-cog"></i> Manage Staff</a></li>
-                <li><a href="manage_rooms.php"><i class="fas fa-bed"></i> Manage Rooms</a></li>
-                <li><a href="bookings.php"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
-                <li><a href="payments.php" class="active"><i class="fas fa-credit-card"></i> Payment Records</a></li>
-                <li><a href="reports.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
-                <li><a href="auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a href="/version2/admin/admin_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="/version2/admin/manage_staff.php"><i class="fas fa-users-cog"></i> Manage Staff</a></li>
+                <li><a href="/version2/admin/manage_rooms.php"><i class="fas fa-bed"></i> Manage Rooms</a></li>
+                <li><a href="/version2/bookings.php"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
+                <li><a href="/version2/admin/payments.php" class="active"><i class="fas fa-credit-card"></i> Payment Records</a></li>
+                <li><a href="/version2/admin/reports.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                <li><a href="/version2/auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </aside>
 

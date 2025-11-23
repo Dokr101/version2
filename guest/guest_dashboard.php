@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/config.php';
+require_once '../includes/config.php';
 requireGuest();
 
 // Handle booking cancellation from dashboard
@@ -61,11 +61,11 @@ $total_spent = array_sum(array_column($bookings, 'total_price'));
                 <div class="logo-subtitle">Guest Portal</div>
             </div>
             <ul class="sidebar-menu">
-                <li><a href="guest_dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="rooms.php"><i class="fas fa-bed"></i> Book Rooms</a></li>
-                <li><a href="bookings.php"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
-                <li><a href="profile.php"><i class="fas fa-user"></i> Profile</a></li>
-                <li><a href="auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a href="/version2/guest/guest_dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="/version2/guest/rooms.php"><i class="fas fa-bed"></i> Book Rooms</a></li>
+                <li><a href="/version2/bookings.php"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
+                <li><a href="/version2/guest/profile.php"><i class="fas fa-user"></i> Profile</a></li>
+                <li><a href="/version2/auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </aside>
 
@@ -113,7 +113,7 @@ $total_spent = array_sum(array_column($bookings, 'total_price'));
                     <div style="text-align: center; padding: 40px;">
                         <h3 style="color: #6c757d; margin-bottom: 15px;">No Bookings Yet</h3>
                         <p style="color: #6c757d; margin-bottom: 20px;">You haven't made any bookings yet.</p>
-                        <a href="rooms.php" class="btn btn-primary">Book Your First Room</a>
+                        <a href="/version2/guest/rooms.php" class="btn btn-primary">Book Your First Room</a>
                     </div>
                 <?php else: ?>
                     <div class="table-container">
@@ -163,7 +163,7 @@ $total_spent = array_sum(array_column($bookings, 'total_price'));
                         </table>
                     </div>
                     <div style="text-align: center; margin-top: 20px;">
-                        <a href="bookings.php" class="btn btn-outline">View All Bookings</a>
+                        <a href="/version2/bookings.php" class="btn btn-outline">View All Bookings</a>
                     </div>
                 <?php endif; ?>
             </section>

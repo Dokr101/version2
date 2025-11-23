@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/config.php';
+require_once '../includes/config.php';
 requireStaff();
 
 // Get today's check-ins and check-outs
@@ -68,12 +68,12 @@ $occupied_rooms = $stmt->fetch(PDO::FETCH_ASSOC)['occupied_rooms'];
                 <div class="logo-subtitle">Staff Panel</div>
             </div>
             <ul class="sidebar-menu">
-                <li><a href="staff_dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="staff_checkin.php"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
-                <li><a href="staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
-                <li><a href="staff_reservations.php"><i class="fas fa-calendar-check"></i> Reservations</a></li>
-                <li><a href="staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
-                <li><a href="auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a href="/version2/hotel staff/staff_dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="/version2/hotel staff/staff_checkin.php"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
+                <li><a href="/version2/hotel staff/staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
+                <li><a href="/version2/hotel staff/staff_reservations.php"><i class="fas fa-calendar-check"></i> Reservations</a></li>
+                <li><a href="/version2/hotel staff/staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
+                <li><a href="/version2/auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </aside>
 
@@ -108,7 +108,7 @@ $occupied_rooms = $stmt->fetch(PDO::FETCH_ASSOC)['occupied_rooms'];
             <section class="card">
                 <div class="card-header">
                     <h2>Today's Check-ins</h2>
-                    <a href="staff_checkin.php" class="btn btn-outline">Manage Check-ins</a>
+                    <a href="/version2/hotel staff/staff_checkin.php" class="btn btn-outline">Manage Check-ins</a>
                 </div>
                 <?php if (empty($today_checkins)): ?>
                     <p>No check-ins scheduled for today.</p>
@@ -137,7 +137,7 @@ $occupied_rooms = $stmt->fetch(PDO::FETCH_ASSOC)['occupied_rooms'];
                                     </td>
                                     <td>
                                         <?php if ($booking['status'] === 'confirmed'): ?>
-                                            <form method="POST" action="staff_checkin.php" style="display: inline;">
+                                            <form method="POST" action="/version2/hotel staff/staff_checkin.php" style="display: inline;">
                                                 <input type="hidden" name="booking_id" value="<?php echo $booking['booking_id']; ?>">
                                                 <button type="submit" name="checkin" class="btn btn-primary">Check-in</button>
                                             </form>
@@ -156,7 +156,7 @@ $occupied_rooms = $stmt->fetch(PDO::FETCH_ASSOC)['occupied_rooms'];
 <section class="card">
     <div class="card-header">
         <h2>Room Status</h2>
-        <a href="staff_rooms.php" class="btn btn-outline">Manage Rooms</a>
+        <a href="/version2/hotel staff/staff_rooms.php" class="btn btn-outline">Manage Rooms</a>
     </div>
     <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
         <?php
@@ -190,7 +190,7 @@ $occupied_rooms = $stmt->fetch(PDO::FETCH_ASSOC)['occupied_rooms'];
             <section class="card">
                 <div class="card-header">
                     <h2>Pending Reservations</h2>
-                    <a href="staff_reservations.php" class="btn btn-outline">View All</a>
+                    <a href="/version2/hotel staff/staff_reservations.php" class="btn btn-outline">View All</a>
                 </div>
                 <?php if (empty($pending_reservations)): ?>
                     <p>No pending reservations.</p>
@@ -216,11 +216,11 @@ $occupied_rooms = $stmt->fetch(PDO::FETCH_ASSOC)['occupied_rooms'];
                                     <td><?php echo date('M j, Y', strtotime($booking['checkin'])); ?></td>
                                     <td><?php echo date('M j, Y', strtotime($booking['checkout'])); ?></td>
                                     <td>
-                                        <form method="POST" action="staff_reservations.php" style="display: inline;">
+                                        <form method="POST" action="/version2/hotel staff/staff_reservations.php" style="display: inline;">
                                             <input type="hidden" name="booking_id" value="<?php echo $booking['booking_id']; ?>">
                                             <button type="submit" name="confirm" class="btn btn-primary">Confirm</button>
                                         </form>
-                                        <form method="POST" action="staff_reservations.php" style="display: inline;">
+                                        <form method="POST" action="/version2/hotel staff/staff_reservations.php" style="display: inline;">
                                             <input type="hidden" name="booking_id" value="<?php echo $booking['booking_id']; ?>">
                                             <button type="submit" name="cancel" class="btn btn-danger">Cancel</button>
                                         </form>

@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/config.php';
+require_once '../includes/config.php';
 requireAdmin();
 
 // Get statistics
@@ -61,17 +61,17 @@ $room_stats = $stmt->fetch(PDO::FETCH_ASSOC);
                 <div class="logo-circle">
                     <i class="fas fa-hotel"></i>
                 </div>
-                <div class="logo-text">Hotel MS</div>
+                <div class="logo-text">HRMS</div>
                 <div class="logo-subtitle">Admin Panel</div>
             </div>
             <ul class="sidebar-menu">
-                <li><a href="admin_dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="manage_staff.php"><i class="fas fa-users-cog"></i> Manage Staff</a></li>
-                <li><a href="manage_rooms.php"><i class="fas fa-bed"></i> Manage Rooms</a></li>
-                <li><a href="bookings.php"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
-                <li><a href="payments.php"><i class="fas fa-credit-card"></i> Payment Records</a></li>
-                <li><a href="reports.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
-                <li><a href="auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a href="/version2/admin/admin_dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="/version2/admin/manage_staff.php"><i class="fas fa-users-cog"></i> Manage Staff</a></li>
+                <li><a href="/version2/admin/manage_rooms.php"><i class="fas fa-bed"></i> Manage Rooms</a></li>
+                <li><a href="/version2/bookings.php"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
+                <li><a href="/version2/admin/payments.php"><i class="fas fa-credit-card"></i> Payment Records</a></li>
+                <li><a href="/version2/admin/reports.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                <li><a href="/version2/auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </aside>
 
@@ -114,7 +114,7 @@ $room_stats = $stmt->fetch(PDO::FETCH_ASSOC);
             <section class="card">
                 <div class="card-header">
                     <h2>Recent Bookings</h2>
-                    <a href="bookings.php" class="btn btn-outline">View All</a>
+                    <a href="/version2/bookings.php" class="btn btn-outline">View All</a>
                 </div>
                 <?php if (empty($recent_bookings)): ?>
                     <p>No recent bookings found.</p>

@@ -60,13 +60,13 @@ require_once 'includes/config.php';
             
             <?php if (!isset($_SESSION['user_id'])): ?>
                 <div class="auth-buttons" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                    <a href="auth/login.php" class="btn btn-primary" style="padding: 12px 30px; font-size: 1.1rem; background: white; color: var(--primary);">Get Started</a>
-                    <a href="rooms.php" class="btn btn-outline" style="border-color: white; color: white; padding: 12px 30px; font-size: 1.1rem;">View Rooms</a>
+                    <a href="/version2/auth/login.php" class="btn btn-primary" style="padding: 12px 30px; font-size: 1.1rem; background: white; color: var(--primary);">Get Started</a>
+                    <a href="/version2/guest/rooms.php" class="btn btn-outline" style="border-color: white; color: white; padding: 12px 30px; font-size: 1.1rem;">View Rooms</a>
                 </div>
             <?php else: ?>
                 <div class="dashboard-link">
-                    <a href="<?php echo $_SESSION['role'] === 'admin' ? 'admin_dashboard.php' : 
-                                         ($_SESSION['role'] === 'staff' ? 'staff_dashboard.php' : 'guest_dashboard.php'); ?>" 
+                    <a href="<?php echo $_SESSION['role'] === 'admin' ? '/version2/admin/admin_dashboard.php' : 
+                                         ($_SESSION['role'] === 'staff' ? '/version2/hotel staff/staff_dashboard.php' : '/version2/guest/guest_dashboard.php'); ?>" 
                        class="btn btn-primary" style="padding: 12px 30px; font-size: 1.1rem; background: white; color: var(--primary);">
                         Go to Dashboard
                     </a>
@@ -146,8 +146,8 @@ require_once 'includes/config.php';
                 Create an account or login to book rooms, manage your bookings, and enjoy exclusive features.
             </p>
             <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                <a href="auth/login.php" class="btn btn-primary" style="background: white; color: var(--primary); padding: 12px 25px;">Login</a>
-                <a href="auth/signup.php" class="btn btn-outline" style="border-color: white; color: white; padding: 12px 25px;">Sign Up</a>
+                <a href="/version2/auth/login.php" class="btn btn-primary" style="background: white; color: var(--primary); padding: 12px 25px;">Login</a>
+                <a href="/version2/auth/signup.php" class="btn btn-outline" style="border-color: white; color: white; padding: 12px 25px;">Sign Up</a>
             </div>
         </div>
     </section>

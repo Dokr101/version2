@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/config.php';
+require_once '../includes/config.php';
 
 // Handle room booking
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_room'])) {
@@ -37,16 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_room'])) {
 
         // Create booking
         $stmt = $pdo->prepare("
-            INSERT INTO bookings (user_id, room_id, checkin, checkout, guests, total_price) 
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO bookings (user_id, room_id, checkin, checkout, guests, total_price, payment_status) 
+            VALUES (?, ?, ?, ?, ?, ?, 'pending')
         ");
         if ($stmt->execute([$_SESSION['user_id'], $room_id, $checkin, $checkout, $guests, $total_price])) {
-            $_SESSION['success'] = "Room booked successfully! Please wait for confirmation.";
-            header("Location: guest_dashboard.php");
+            $_SESSION['success'] = "Room booked successfully! Please complete the payment to confirm your booking.";
+            header("Location: /version2/bookings.php");
             exit();
         } else {
             $error = "Booking failed. Please try again.";
         }
+
     }
 }
 
@@ -86,26 +87,26 @@ foreach ($rooms as $room) {
             </div>
             <ul class="sidebar-menu">
                 <?php if (isAdmin()): ?>
-                    <li><a href="admin_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="manage_staff.php"><i class="fas fa-users-cog"></i> Manage Staff</a></li>
-                    <li><a href="manage_rooms.php"><i class="fas fa-bed"></i> Manage Rooms</a></li>
-                    <li><a href="bookings.php"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
-                    <li><a href="payments.php"><i class="fas fa-credit-card"></i> Payment Records</a></li>
-                    <li><a href="reports.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                    <li><a href="/version2/admin/admin_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="/version2/admin/manage_staff.php"><i class="fas fa-users-cog"></i> Manage Staff</a></li>
+                    <li><a href="/version2/admin/manage_rooms.php"><i class="fas fa-bed"></i> Manage Rooms</a></li>
+                    <li><a href="/version2/bookings.php"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
+                    <li><a href="/version2/admin/payments.php"><i class="fas fa-credit-card"></i> Payment Records</a></li>
+                    <li><a href="/version2/admin/reports.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
                 <?php elseif (isStaff()): ?>
-                    <li><a href="staff_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="staff_checkin.php"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
-                    <li><a href="staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
-                    <li><a href="staff_reservations.php"><i class="fas fa-calendar-check"></i> Reservations</a></li>
-                    <li><a href="staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
-                    <li><a href="bookings.php"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
+                    <li><a href="/version2/hotel staff/staff_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="/version2/hotel staff/staff_checkin.php"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
+                    <li><a href="/version2/hotel staff/staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
+                    <li><a href="/version2/hotel staff/staff_reservations.php"><i class="fas fa-calendar-check"></i> Reservations</a></li>
+                    <li><a href="/version2/hotel staff/staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
+                    <li><a href="/version2/bookings.php"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
                 <?php else: ?>
-                    <li><a href="guest_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="rooms.php" class="active"><i class="fas fa-bed"></i> Book Rooms</a></li>
-                    <li><a href="bookings.php"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
-                    <li><a href="profile.php"><i class="fas fa-user"></i> Profile</a></li>
+                    <li><a href="/version2/guest/guest_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="/version2/guest/rooms.php" class="active"><i class="fas fa-bed"></i> Book Rooms</a></li>
+                    <li><a href="/version2/bookings.php"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
+                    <li><a href="/version2/guest/profile.php"><i class="fas fa-user"></i> Profile</a></li>
                 <?php endif; ?>
-                <li><a href="auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a href="/version2/auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </aside>
         <?php endif; ?>
@@ -185,7 +186,7 @@ foreach ($rooms as $room) {
                                     Book Now
                                 </button>
                             <?php elseif (!isLoggedIn()): ?>
-                                <a href="auth/login.php" class="btn btn-primary">Login to Book</a>
+                                <a href="/version2/auth/login.php" class="btn btn-primary">Login to Book</a>
                             <?php endif; ?>
                         </div>
 

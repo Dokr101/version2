@@ -40,7 +40,7 @@ function isGuest() {
 function requireLogin() {
     if (!isLoggedIn()) {
         $_SESSION['redirect_url'] = $_SERVER['REQUEST_URI'];
-        header("Location: auth/login.php");
+        header("Location: /version2/auth/login.php");
         exit();
     }
 }
@@ -48,7 +48,7 @@ function requireLogin() {
 function requireAdmin() {
     requireLogin();
     if (!isAdmin()) {
-        header("Location: ../index.php");
+        header("Location: /version2/homepage.php");
         exit();
     }
 }
@@ -57,9 +57,9 @@ function requireStaff() {
     requireLogin();
     if (!isStaff()) {
         if (isAdmin()) {
-            header("Location: admin_dashboard.php");
+            header("Location: /version2/admin/admin_dashboard.php");
         } else {
-            header("Location: guest_dashboard.php");
+            header("Location: /version2/guest/guest_dashboard.php");
         }
         exit();
     }
@@ -69,9 +69,9 @@ function requireGuest() {
     requireLogin();
     if (!isGuest()) {
         if (isAdmin()) {
-            header("Location: admin_dashboard.php");
+            header("Location: /version2/admin/admin_dashboard.php");
         } else {
-            header("Location: staff_dashboard.php");
+            header("Location: /version2/hotel staff/staff_dashboard.php");
         }
         exit();
     }

@@ -3,8 +3,8 @@ require_once '../includes/config.php';
 
 // Redirect if already logged in
 if (isset($_SESSION['user_id'])) {
-    header("Location: " . ($_SESSION['role'] === 'admin' ? '../admin_dashboard.php' : 
-                          ($_SESSION['role'] === 'staff' ? '../staff_dashboard.php' : '../guest_dashboard.php')));
+    header("Location: /version2/" . ($_SESSION['role'] === 'admin' ? 'admin/admin_dashboard.php' : 
+                          ($_SESSION['role'] === 'staff' ? 'hotel staff/staff_dashboard.php' : 'guest/guest_dashboard.php')));
     exit();
 }
 
@@ -42,11 +42,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Redirect based on role
                 if ($user['role'] === 'admin') {
-                    header("Location: ../admin_dashboard.php");
+                    header("Location: /version2/admin/admin_dashboard.php");
                 } elseif ($user['role'] === 'staff') {
-                    header("Location: ../staff_dashboard.php");
+                    header("Location: /version2/hotel staff/staff_dashboard.php");
                 } else {
-                    header("Location: ../guest_dashboard.php");
+                    header("Location: /version2/guest/guest_dashboard.php");
                 }
                 exit();
             }

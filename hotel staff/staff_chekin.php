@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/config.php';
+require_once '../includes/config.php';
 requireStaff();
 
 // Handle check-in
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkin'])) {
     } else {
         $_SESSION['error'] = "Failed to check in guest.";
     }
-    header("Location: staff_checkin.php");
+    header("Location: /version2/hotel staff/staff_chekin.php");
     exit();
 }
 
@@ -56,12 +56,12 @@ $checkins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="logo-subtitle">Staff Panel</div>
             </div>
             <ul class="sidebar-menu">
-                <li><a href="staff_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="staff_checkin.php" class="active"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
-                <li><a href="staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
-                <li><a href="staff_reservations.php"><i class="fas fa-calendar-check"></i> Reservations</a></li>
-                <li><a href="staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
-                <li><a href="auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a href="/version2/hotel staff/staff_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="/version2/hotel staff/staff_chekin.php" class="active"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
+                <li><a href="/version2/hotel staff/staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
+                <li><a href="/version2/hotel staff/staff_reservations.php"><i class="fas fa-calendar-check"></i> Reservations</a></li>
+                <li><a href="/version2/hotel staff/staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
+                <li><a href="/version2/auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </aside>
 

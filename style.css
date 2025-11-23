@@ -1,29 +1,31 @@
-/* CSS Variables for subtle color scheme */
+/* CSS Variables - Sophisticated Navy & Gold Theme */
 :root {
-    --primary: #C9A063;
-    /* Buttery gold */
-    --primary-dark: #B08D54;
-    /* Deeper buttery tone */
-    --primary-light: #D4B07A;
-    /* Light buttery */
-    --secondary: #A8A8A8;
-    /* Soft gray */
-    --light: #F8F9FA;
-    /* Off-white */
+    --primary: #53a5b8;
+    /* Deep Navy Blue - Professional & stable */
+    --primary-dark: #0F2538;
+    /* Darker Navy */
+    --primary-light: #2D5F8D;
+    /* Lighter Navy */
+    --accent: #D4AF37;
+    /* Rich Gold - Luxury accent */
+    --secondary: #9CAF88;
+    /* Sage Green - Calm & welcoming */
+    --light: #FAF6F1;
+    /* Cream White - Elegant backgrounds */
     --dark: #4A5568;
-    /* Soft dark text */
-    --success: #8BC34A;
-    /* Soft green */
+    /* Charcoal Gray - Text */
+    --success: #48BB78;
+    /* Fresh Green */
     --warning: #F6AD55;
-    /* Soft amber */
-    --danger: #EF9A9A;
-    /* Soft red */
+    /* Warm Amber */
+    --danger: #F56565;
+    /* Soft Red */
     --gray-light: #F7FAFC;
     /* Very light gray */
     --gray: #E2E8F0;
     /* Soft gray */
-    --cream: #FEF8F1;
-    /* Light cream */
+    --cream: #FAF6F1;
+    /* Cream (matches light) */
     --rose-white: #FFF5F7;
     /* Rose white */
     --white-dove: #FAFAFA;
