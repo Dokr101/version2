@@ -3,39 +3,55 @@ require_once '../includes/config.php';
 
 // Redirect if already logged in
 if (isset($_SESSION['user_id'])) {
-    header("Location: " . ($_SESSION['role'] === 'admin' ? '../admin_dashboard.php' : '../dashboard.php'));
+    header("Location: " . ($_SESSION['role'] === 'admin' ? '../admin_dashboard.php' : 
+                          ($_SESSION['role'] === 'staff' ? '../staff_dashboard.php' : '../guest_dashboard.php')));
     exit();
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email']);
+    $username = trim($_POST['username']);
     $password = $_POST['password'];
     
     // Validation
     $errors = [];
-    if (empty($email)) {
-        $errors[] = "Email is required.";
+    if (empty($username)) {
+        $errors[] = "Username is required.";
     }
     if (empty($password)) {
         $errors[] = "Password is required.";
     }
     
     if (empty($errors)) {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
-        $stmt->execute([$email]);
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
+        $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($user && password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['name'] = $user['name'];
-            $_SESSION['email'] = $user['email'];
-            $_SESSION['role'] = $user['role'];
-            
-            $_SESSION['success'] = "Welcome back, " . $user['name'] . "!";
-            header("Location: " . ($user['role'] === 'admin' ? '../admin_dashboard.php' : '../dashboard.php'));
-            exit();
+            // Check if staff user is approved
+            if ($user['role'] === 'staff' && $user['status'] !== 'active') {
+                $errors[] = "Your account is pending admin approval.";
+            } else {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['name'] = $user['name'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['email'] = $user['email'];
+                $_SESSION['role'] = $user['role'];
+                $_SESSION['status'] = $user['status'];
+                
+                $_SESSION['success'] = "Welcome back, " . $user['name'] . "!";
+                
+                // Redirect based on role
+                if ($user['role'] === 'admin') {
+                    header("Location: ../admin_dashboard.php");
+                } elseif ($user['role'] === 'staff') {
+                    header("Location: ../staff_dashboard.php");
+                } else {
+                    header("Location: ../guest_dashboard.php");
+                }
+                exit();
+            }
         } else {
-            $errors[] = "Invalid email or password.";
+            $errors[] = "Invalid username or password.";
         }
     }
 }
@@ -47,13 +63,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - HRMS</title>
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="/version2/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
 </head>
 <body>
     <div class="auth-container">
-        <!-- Home Button Section -->
         <div class="auth-header">
             <a href="../homepage.php" class="home-btn">
                 <i class="fas fa-home"></i>
@@ -66,12 +80,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <a href="signup.php" class="auth-tab">Sign Up</a>
         </div>
         
-        <!-- Login Form -->
         <form id="login-form" class="auth-form active" method="POST" action="">
             <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" class="form-control" 
-                       value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>" 
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" class="form-control" 
+                       value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>" 
                        required>
             </div>
             
@@ -89,7 +102,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
             
             <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
-            
         </form>
     </div>
 </body>

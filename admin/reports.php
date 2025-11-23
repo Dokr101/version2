@@ -13,7 +13,7 @@ $stmt = $pdo->prepare("
         SUM(total_price) as total_revenue,
         AVG(total_price) as average_booking_value
     FROM bookings 
-    WHERE status = 'confirmed' 
+    WHERE status IN ('confirmed', 'checked_in', 'checked_out') 
     AND created_at BETWEEN ? AND ?
 ");
 $stmt->execute([$start_date, $end_date]);
@@ -24,7 +24,7 @@ $stmt = $pdo->prepare("
     SELECT r.type, COUNT(b.booking_id) as booking_count, SUM(b.total_price) as revenue
     FROM bookings b
     JOIN rooms r ON b.room_id = r.room_id
-    WHERE b.status = 'confirmed' 
+    WHERE b.status IN ('confirmed', 'checked_in', 'checked_out') 
     AND b.created_at BETWEEN ? AND ?
     GROUP BY r.type
     ORDER BY revenue DESC
@@ -40,7 +40,7 @@ $stmt = $pdo->prepare("
         COUNT(*) as booking_count,
         SUM(total_price) as revenue
     FROM bookings 
-    WHERE status = 'confirmed'
+    WHERE status IN ('confirmed', 'checked_in', 'checked_out')
     AND YEAR(created_at) = ?
     GROUP BY month
     ORDER BY month
@@ -62,20 +62,27 @@ $status_distribution = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports - HRMS</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Reports - Hotel MS</title>
+    <link rel="stylesheet" href="/version2/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-
-    
     <div class="main-content">
         <!-- Sidebar -->
         <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-circle">
+                    <i class="fas fa-hotel"></i>
+                </div>
+                <div class="logo-text">Hotel MS</div>
+                <div class="logo-subtitle">Admin Panel</div>
+            </div>
             <ul class="sidebar-menu">
                 <li><a href="admin_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="manage_staff.php"><i class="fas fa-users-cog"></i> Manage Staff</a></li>
                 <li><a href="manage_rooms.php"><i class="fas fa-bed"></i> Manage Rooms</a></li>
                 <li><a href="bookings.php"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
+                <li><a href="payments.php"><i class="fas fa-credit-card"></i> Payment Records</a></li>
                 <li><a href="reports.php" class="active"><i class="fas fa-chart-bar"></i> Reports</a></li>
                 <li><a href="auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
@@ -219,6 +226,8 @@ $status_distribution = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             switch($status['status']) {
                                 case 'confirmed': echo '#28a745'; break;
                                 case 'pending': echo '#ffc107'; break;
+                                case 'checked_in': echo '#17a2b8'; break;
+                                case 'checked_out': echo '#6c757d'; break;
                                 case 'cancelled': echo '#dc3545'; break;
                                 default: echo '#6c757d';
                             }
@@ -230,36 +239,10 @@ $status_distribution = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <?php endforeach; ?>
                 </div>
             </section>
-
-            <!-- Export Options -->
-            <!--<section class="card">
-                <div class="card-header">
-                    <h2>Export Data</h2>
-                </div>
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <button class="btn btn-outline" onclick="exportToCSV()">
-                        <i class="fas fa-download"></i> Export to CSV
-                    </button>
-                    <button class="btn btn-outline" onclick="printReport()">
-                        <i class="fas fa-print"></i> Print Report
-                    </button>
-                </div>
-            </section>-->
         </main>
     </div>
 
-    <?php include 'includes/footer.php'; ?>
-
     <script>
-        function exportToCSV() {
-            alert('CSV export functionality would be implemented here. This would generate a CSV file with all report data.');
-            // In a real implementation, this would make an AJAX call to generate and download a CSV file
-        }
-
-        function printReport() {
-            window.print();
-        }
-
         // Set maximum end date to today
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date().toISOString().split('T')[0];

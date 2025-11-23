@@ -6,15 +6,25 @@ requireLogin();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     $name = trim($_POST['name']);
     $email = trim($_POST['email']);
+    $phone = trim($_POST['phone']);
     $current_password = $_POST['current_password'];
     $new_password = $_POST['new_password'];
     $confirm_password = $_POST['confirm_password'];
 
     $errors = [];
     
-    // Validate name
+    // Validate name (letters only)
     if (empty($name)) {
         $errors[] = "Name is required.";
+    } elseif (preg_match('/[0-9]/', $name)) {
+        $errors[] = "Name should contain only letters.";
+    }
+    
+    // Validate phone (10 digits)
+    if (empty($phone)) {
+        $errors[] = "Phone number is required.";
+    } elseif (!preg_match('/^[0-9]{10}$/', $phone)) {
+        $errors[] = "Phone number must be exactly 10 digits.";
     }
     
     // Validate email
@@ -45,6 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
                 $errors[] = "Current password is incorrect.";
             } elseif (strlen($new_password) < 6) {
                 $errors[] = "New password must be at least 6 characters.";
+            } elseif (!preg_match('/[0-9]/', $new_password) || !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $new_password)) {
+                $errors[] = "New password must contain at least one number and one symbol.";
             } elseif ($new_password !== $confirm_password) {
                 $errors[] = "New passwords do not match.";
             }
@@ -55,12 +67,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
         if (!empty($new_password)) {
             // Update with new password
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?");
-            $success = $stmt->execute([$name, $email, $hashed_password, $_SESSION['user_id']]);
+            $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ?, password = ? WHERE id = ?");
+            $success = $stmt->execute([$name, $email, $phone, $hashed_password, $_SESSION['user_id']]);
         } else {
             // Update without changing password
-            $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ? WHERE id = ?");
-            $success = $stmt->execute([$name, $email, $_SESSION['user_id']]);
+            $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?");
+            $success = $stmt->execute([$name, $email, $phone, $_SESSION['user_id']]);
         }
         
         if ($success) {
@@ -79,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
 }
 
 // Get current user data
-$stmt = $pdo->prepare("SELECT name, email, created_at FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT name, username, email, phone, role, status, created_at FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 ?>
@@ -89,21 +101,42 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - HRMS</title>
-    <link rel="stylesheet" href="style.css">
+    <title>My Profile - Hotel MS</title>
+    <link rel="stylesheet" href="/version2/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-    
-    
     <div class="main-content">
         <!-- Sidebar -->
         <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-circle">
+                    <i class="fas fa-hotel"></i>
+                </div>
+                <div class="logo-text">Hotel MS</div>
+                <div class="logo-subtitle"><?php echo isAdmin() ? 'Admin Panel' : (isStaff() ? 'Staff Panel' : 'Guest Portal'); ?></div>
+            </div>
             <ul class="sidebar-menu">
-                <li><a href="dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="rooms.php"><i class="fas fa-bed"></i> Book Rooms</a></li>
-                <li><a href="bookings.php"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
-                <li><a href="profile.php" class="active"><i class="fas fa-user"></i> Profile</a></li>
+                <?php if (isAdmin()): ?>
+                    <li><a href="admin_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="manage_staff.php"><i class="fas fa-users-cog"></i> Manage Staff</a></li>
+                    <li><a href="manage_rooms.php"><i class="fas fa-bed"></i> Manage Rooms</a></li>
+                    <li><a href="bookings.php"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
+                    <li><a href="payments.php"><i class="fas fa-credit-card"></i> Payment Records</a></li>
+                    <li><a href="reports.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                <?php elseif (isStaff()): ?>
+                    <li><a href="staff_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="staff_checkin.php"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
+                    <li><a href="staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
+                    <li><a href="staff_reservations.php"><i class="fas fa-calendar-check"></i> Reservations</a></li>
+                    <li><a href="staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
+                    <li><a href="bookings.php"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
+                <?php else: ?>
+                    <li><a href="guest_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="rooms.php"><i class="fas fa-bed"></i> Book Rooms</a></li>
+                    <li><a href="bookings.php"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
+                    <li><a href="profile.php" class="active"><i class="fas fa-user"></i> Profile</a></li>
+                <?php endif; ?>
                 <li><a href="auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </aside>
@@ -131,13 +164,37 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
                     <div class="form-group">
                         <label for="name">Full Name:</label>
                         <input type="text" id="name" name="name" class="form-control" 
-                               value="<?php echo htmlspecialchars($user['name']); ?>" required>
+                               value="<?php echo htmlspecialchars($user['name']); ?>" required pattern="[A-Za-z\s]+" title="Name should contain only letters">
+                        <small class="form-text">Only letters and spaces allowed</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" class="form-control" 
+                               value="<?php echo htmlspecialchars($user['username']); ?>" readonly>
+                        <small class="form-text">Username cannot be changed</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number:</label>
+                        <input type="tel" id="phone" name="phone" class="form-control" 
+                               value="<?php echo htmlspecialchars($user['phone']); ?>" required pattern="[0-9]{10}" title="Phone number must be exactly 10 digits">
                     </div>
 
                     <div class="form-group">
                         <label for="email">Email Address:</label>
                         <input type="email" id="email" name="email" class="form-control" 
                                value="<?php echo htmlspecialchars($user['email']); ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Role:</label>
+                        <p style="color: #6c757d; margin: 5px 0;">
+                            <?php echo ucfirst($user['role']); ?>
+                            <?php if ($user['status'] === 'pending'): ?>
+                                <span class="status pending" style="margin-left: 10px;">Pending Approval</span>
+                            <?php endif; ?>
+                        </p>
                     </div>
 
                     <div class="form-group">
@@ -159,8 +216,8 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
                     <div class="form-group">
                         <label for="new_password">New Password:</label>
-                        <input type="password" id="new_password" name="new_password" class="form-control">
-                        <small style="color: #6c757d;">Minimum 6 characters</small>
+                        <input type="password" id="new_password" name="new_password" class="form-control" minlength="6">
+                        <small style="color: #6c757d;">Minimum 6 characters with one number and one symbol</small>
                     </div>
 
                     <div class="form-group">
@@ -171,48 +228,8 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
                     <button type="submit" name="update_profile" class="btn btn-primary">Update Profile</button>
                 </form>
             </div>
-
-            <!-- Account Statistics -->
-            <div class="card">
-                <div class="card-header">
-                    <h2>Account Statistics</h2>
-                </div>
-                <div class="stats-grid">
-                    <?php
-                    // Get user statistics
-                    $stmt = $pdo->prepare("SELECT COUNT(*) as total_bookings FROM bookings WHERE user_id = ?");
-                    $stmt->execute([$_SESSION['user_id']]);
-                    $total_bookings = $stmt->fetch(PDO::FETCH_ASSOC)['total_bookings'];
-
-                    $stmt = $pdo->prepare("SELECT COUNT(*) as confirmed_bookings FROM bookings WHERE user_id = ? AND status = 'confirmed'");
-                    $stmt->execute([$_SESSION['user_id']]);
-                    $confirmed_bookings = $stmt->fetch(PDO::FETCH_ASSOC)['confirmed_bookings'];
-
-                    $stmt = $pdo->prepare("SELECT SUM(total_price) as total_spent FROM bookings WHERE user_id = ? AND status = 'confirmed'");
-                    $stmt->execute([$_SESSION['user_id']]);
-                    $total_spent = $stmt->fetch(PDO::FETCH_ASSOC)['total_spent'] ?? 0;
-                    ?>
-                    
-                    <div class="stat-card">
-                        <div class="stat-number"><?php echo $total_bookings; ?></div>
-                        <div class="stat-label">Total Bookings</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-number"><?php echo $confirmed_bookings; ?></div>
-                        <div class="stat-label">Confirmed Bookings</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-number">Rs.<?php echo number_format($total_spent, 2); ?></div>
-                        <div class="stat-label">Total Spent</div>
-                    </div>
-                </div>
-            </div>
         </main>
     </div>
-
-    <?php include 'includes/footer.php'; ?>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

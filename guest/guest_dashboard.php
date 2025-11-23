@@ -1,6 +1,6 @@
 <?php
 require_once 'includes/config.php';
-requireLogin();
+requireGuest();
 
 // Handle booking cancellation from dashboard
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_booking'])) {
@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_booking'])) {
     } else {
         $_SESSION['error'] = "Failed to cancel booking.";
     }
-    header("Location: dashboard.php");
+    header("Location: guest_dashboard.php");
     exit();
 }
 
@@ -45,18 +45,23 @@ $total_spent = array_sum(array_column($bookings, 'total_price'));
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - HRMS</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Dashboard - Hotel MS</title>
+    <link rel="stylesheet" href="/version2/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-   
-    
     <div class="main-content">
         <!-- Sidebar -->
         <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-circle">
+                    <i class="fas fa-hotel"></i>
+                </div>
+                <div class="logo-text">Hotel MS</div>
+                <div class="logo-subtitle">Guest Portal</div>
+            </div>
             <ul class="sidebar-menu">
-                <li><a href="dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="guest_dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                 <li><a href="rooms.php"><i class="fas fa-bed"></i> Book Rooms</a></li>
                 <li><a href="bookings.php"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
                 <li><a href="profile.php"><i class="fas fa-user"></i> Profile</a></li>
@@ -94,7 +99,6 @@ $total_spent = array_sum(array_column($bookings, 'total_price'));
                 </div>
             </div>
             
-            
             <!-- Recent Bookings -->
             <section class="card">
                 <?php if (isset($_SESSION['success'])): ?>
@@ -120,6 +124,7 @@ $total_spent = array_sum(array_column($bookings, 'total_price'));
                                     <th>Room Type</th>
                                     <th>Check-in</th>
                                     <th>Check-out</th>
+                                    <th>Guests</th>
                                     <th>Total Price</th>
                                     <th>Status</th>
                                     <th>Actions</th>
@@ -132,6 +137,7 @@ $total_spent = array_sum(array_column($bookings, 'total_price'));
                                     <td><?php echo $booking['type']; ?></td>
                                     <td><?php echo date('M j, Y', strtotime($booking['checkin'])); ?></td>
                                     <td><?php echo date('M j, Y', strtotime($booking['checkout'])); ?></td>
+                                    <td><?php echo $booking['guests']; ?></td>
                                     <td>Rs.<?php echo number_format($booking['total_price'], 2); ?></td>
                                     <td>
                                         <span class="status <?php echo $booking['status']; ?>">
@@ -155,6 +161,9 @@ $total_spent = array_sum(array_column($bookings, 'total_price'));
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <a href="bookings.php" class="btn btn-outline">View All Bookings</a>
                     </div>
                 <?php endif; ?>
             </section>

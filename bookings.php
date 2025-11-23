@@ -4,7 +4,7 @@ requireLogin();
 
 // Handle booking actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['update_booking']) && isAdmin()) {
+    if (isset($_POST['update_booking']) && (isAdmin() || isStaff())) {
         $booking_id = $_POST['booking_id'];
         $status = $_POST['status'];
         
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $_SESSION['error'] = "Failed to delete booking.";
         }
-    } elseif (isset($_POST['cancel_booking']) && !isAdmin()) {
+    } elseif (isset($_POST['cancel_booking']) && isGuest()) {
         $booking_id = $_POST['booking_id'];
         $user_id = $_SESSION['user_id'];
         
@@ -37,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Get bookings based on user role
-if (isAdmin()) {
-    // Admin sees all bookings
+if (isAdmin() || isStaff()) {
+    // Admin and Staff see all bookings
     $stmt = $pdo->prepare("
         SELECT b.*, u.name as user_name, u.email, r.type as room_type, r.price
         FROM bookings b 
@@ -67,25 +67,38 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isAdmin() ? 'All Bookings' : 'My Bookings'; ?> - HRMS</title>
-    <link rel="stylesheet" href="style.css">
+    <title><?php echo (isAdmin() || isStaff()) ? 'All Bookings' : 'My Bookings'; ?> - Hotel MS</title>
+    <link rel="stylesheet" href="/version2/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-    
-    
     <div class="main-content">
         <!-- Sidebar -->
         <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-circle">
+                    <i class="fas fa-hotel"></i>
+                </div>
+                <div class="logo-text">Hotel MS</div>
+                <div class="logo-subtitle"><?php echo isAdmin() ? 'Admin Panel' : (isStaff() ? 'Staff Panel' : 'Guest Portal'); ?></div>
+            </div>
             <ul class="sidebar-menu">
-                
                 <?php if (isAdmin()): ?>
                     <li><a href="admin_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="manage_staff.php"><i class="fas fa-users-cog"></i> Manage Staff</a></li>
                     <li><a href="manage_rooms.php"><i class="fas fa-bed"></i> Manage Rooms</a></li>
                     <li><a href="bookings.php" class="active"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
+                    <li><a href="payments.php"><i class="fas fa-credit-card"></i> Payment Records</a></li>
                     <li><a href="reports.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                <?php elseif (isStaff()): ?>
+                    <li><a href="staff_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="staff_checkin.php"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
+                    <li><a href="staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
+                    <li><a href="staff_reservations.php"><i class="fas fa-calendar-check"></i> Reservations</a></li>
+                    <li><a href="staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
+                    <li><a href="bookings.php" class="active"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
                 <?php else: ?>
-                    <li><a href="dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="guest_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                     <li><a href="rooms.php"><i class="fas fa-bed"></i> Book Rooms</a></li>
                     <li><a href="bookings.php" class="active"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
                     <li><a href="profile.php"><i class="fas fa-user"></i> Profile</a></li>
@@ -97,8 +110,8 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <!-- Content Area -->
         <main class="content">
             <div class="page-header">
-                <h1><?php echo isAdmin() ? 'All Bookings' : 'My Bookings'; ?></h1>
-                <p><?php echo isAdmin() ? 'Manage all hotel bookings' : 'View and manage your bookings'; ?></p>
+                <h1><?php echo (isAdmin() || isStaff()) ? 'All Bookings' : 'My Bookings'; ?></h1>
+                <p><?php echo (isAdmin() || isStaff()) ? 'Manage all hotel bookings' : 'View and manage your bookings'; ?></p>
             </div>
 
             <?php if (isset($_SESSION['success'])): ?>
@@ -113,9 +126,9 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="card" style="text-align: center; padding: 60px 20px;">
                     <h3 style="color: #6c757d; margin-bottom: 15px;">No Bookings Found</h3>
                     <p style="color: #6c757d; margin-bottom: 30px;">
-                        <?php echo isAdmin() ? 'There are no bookings in the system yet.' : 'You haven\'t made any bookings yet.'; ?>
+                        <?php echo (isAdmin() || isStaff()) ? 'There are no bookings in the system yet.' : 'You haven\'t made any bookings yet.'; ?>
                     </p>
-                    <?php if (!isAdmin()): ?>
+                    <?php if (isGuest()): ?>
                         <a href="rooms.php" class="btn btn-primary">Book Your First Room</a>
                     <?php endif; ?>
                 </div>
@@ -126,14 +139,14 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <thead>
                                 <tr>
                                     <th>Booking ID</th>
-                                    <?php if (isAdmin()): ?>
+                                    <?php if (isAdmin() || isStaff()): ?>
                                         <th>Guest Name</th>
                                         <th>Email</th>
                                     <?php endif; ?>
                                     <th>Room Type</th>
                                     <th>Check-in</th>
                                     <th>Check-out</th>
-                                    <th>Nights</th>
+                                    <th>Guests</th>
                                     <th>Total Price</th>
                                     <th>Status</th>
                                     <th>Booked On</th>
@@ -141,19 +154,17 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($bookings as $booking): 
-                                    $nights = (strtotime($booking['checkout']) - strtotime($booking['checkin'])) / (60 * 60 * 24);
-                                ?>
+                                <?php foreach ($bookings as $booking): ?>
                                 <tr>
                                     <td>#<?php echo $booking['booking_id']; ?></td>
-                                    <?php if (isAdmin()): ?>
+                                    <?php if (isAdmin() || isStaff()): ?>
                                         <td><?php echo htmlspecialchars($booking['user_name']); ?></td>
                                         <td><?php echo htmlspecialchars($booking['email']); ?></td>
                                     <?php endif; ?>
                                     <td><?php echo $booking['room_type']; ?></td>
                                     <td><?php echo date('M j, Y', strtotime($booking['checkin'])); ?></td>
                                     <td><?php echo date('M j, Y', strtotime($booking['checkout'])); ?></td>
-                                    <td><?php echo $nights; ?></td>
+                                    <td><?php echo $booking['guests']; ?></td>
                                     <td>Rs.<?php echo number_format($booking['total_price'], 2); ?></td>
                                     <td>
                                         <span class="status <?php echo $booking['status']; ?>">
@@ -163,20 +174,22 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <td><?php echo date('M j, Y', strtotime($booking['created_at'])); ?></td>
                                     <td>
                                         <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                                            <?php if (isAdmin()): ?>
-                                                <!-- Admin Actions -->
+                                            <?php if (isAdmin() || isStaff()): ?>
+                                                <!-- Admin and Staff Actions -->
                                                 <button class="btn btn-outline edit-booking-btn" 
                                                         data-booking-id="<?php echo $booking['booking_id']; ?>"
                                                         data-status="<?php echo $booking['status']; ?>">
                                                     Edit
                                                 </button>
-                                                <form method="POST" style="display: inline;">
-                                                    <input type="hidden" name="booking_id" value="<?php echo $booking['booking_id']; ?>">
-                                                    <button type="submit" name="delete_booking" class="btn btn-danger" 
-                                                            onclick="return confirm('Are you sure you want to delete this booking?')">
-                                                        Delete
-                                                    </button>
-                                                </form>
+                                                <?php if (isAdmin()): ?>
+                                                    <form method="POST" style="display: inline;">
+                                                        <input type="hidden" name="booking_id" value="<?php echo $booking['booking_id']; ?>">
+                                                        <button type="submit" name="delete_booking" class="btn btn-danger" 
+                                                                onclick="return confirm('Are you sure you want to delete this booking?')">
+                                                            Delete
+                                                        </button>
+                                                    </form>
+                                                <?php endif; ?>
                                             <?php else: ?>
                                                 <!-- Guest Actions -->
                                                 <?php if ($booking['status'] === 'pending' || $booking['status'] === 'confirmed'): ?>
@@ -203,8 +216,8 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </main>
     </div>
 
-    <!-- Edit Booking Modal (Admin Only) -->
-    <?php if (isAdmin()): ?>
+    <!-- Edit Booking Modal (Admin and Staff Only) -->
+    <?php if (isAdmin() || isStaff()): ?>
     <div id="editBookingModal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close">&times;</span>
@@ -216,6 +229,8 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <select id="edit_status" name="status" class="form-control" required>
                         <option value="pending">Pending</option>
                         <option value="confirmed">Confirmed</option>
+                        <option value="checked_in">Checked In</option>
+                        <option value="checked_out">Checked Out</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
                 </div>
@@ -225,10 +240,8 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
     <?php endif; ?>
 
-    <?php include 'includes/footer.php'; ?>
-
     <script>
-        <?php if (isAdmin()): ?>
+        <?php if (isAdmin() || isStaff()): ?>
         // Edit Booking Modal functionality
         const editModal = document.getElementById('editBookingModal');
         const editCloseBtn = editModal.querySelector('.close');

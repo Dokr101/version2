@@ -1,14 +1,17 @@
 -- Create database
-CREATE DATABASE IF NOT EXISTS HRMS2;
-USE HRMS2;
+CREATE DATABASE IF NOT EXISTS HRMS_9;
+USE HRMS_9;
 
--- Users table
+-- Users table with status field for staff approval
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(15),
     password VARCHAR(255) NOT NULL,
-    role ENUM('guest', 'admin') DEFAULT 'guest',
+    role ENUM('guest', 'staff', 'admin') DEFAULT 'guest',
+    status ENUM('active', 'pending') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -18,8 +21,9 @@ CREATE TABLE IF NOT EXISTS rooms (
     room_id INT AUTO_INCREMENT PRIMARY KEY,
     type VARCHAR(50) NOT NULL,
     price DECIMAL(10,2) NOT NULL,
-    status ENUM('available', 'booked') DEFAULT 'available',
+    status ENUM('available', 'occupied', 'unavailable') DEFAULT 'available',
     description TEXT,
+    amenities TEXT,
     image_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -32,45 +36,43 @@ CREATE TABLE IF NOT EXISTS bookings (
     room_id INT,
     checkin DATE NOT NULL,
     checkout DATE NOT NULL,
-    status ENUM('pending', 'confirmed', 'cancelled') DEFAULT 'pending',
+    guests INT DEFAULT 1,
+    status ENUM('pending', 'confirmed', 'checked_in', 'checked_out', 'cancelled') DEFAULT 'pending',
     total_price DECIMAL(10,2),
+    payment_status ENUM('pending', 'paid', 'refunded') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (room_id) REFERENCES rooms(room_id) ON DELETE CASCADE
 );
 
--- Payments table (optional extension)
+-- Payments table
 CREATE TABLE IF NOT EXISTS payments (
     payment_id INT AUTO_INCREMENT PRIMARY KEY,
     booking_id INT,
     amount DECIMAL(10,2) NOT NULL,
-    payment_method ENUM('cash', 'card', 'online') DEFAULT 'cash',
-    status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
+    payment_method VARCHAR(50),
     transaction_id VARCHAR(100),
+    status ENUM('pending', 'completed', 'failed', 'refunded') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (booking_id) REFERENCES bookings(booking_id) ON DELETE CASCADE
 );
 
 -- Insert sample admin user
--- Default password: password123 (hashed)
-INSERT INTO users (name, email, password, role) VALUES 
-('Admin User', 'admin@hotel.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
+-- Default password: admin123 (hashed)
+INSERT INTO users (name, username, email, phone, password, role, status) VALUES 
+('Admin User', 'admin', 'admin@hotel.com', '1234567890', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active');
 
 -- Insert sample rooms
-INSERT INTO rooms (type, price, status, description) VALUES 
-('Single', 100.00, 'available', 'Comfortable single room with basic amenities including a queen-sized bed, work desk, and private bathroom. Perfect for solo travelers.'),
-('Double', 150.00, 'available', 'Spacious double room perfect for couples or friends, featuring two double beds, sitting area, and modern amenities.'),
-('Suite', 250.00, 'available', 'Luxurious suite with premium amenities including separate living area, king-sized bed, jacuzzi, and city views.'),
-('Deluxe', 200.00, 'available', 'Deluxe room with extra space and comfort, featuring a king-sized bed, mini-bar, and premium bathroom amenities.');
-
--- Insert sample bookings
-INSERT INTO bookings (user_id, room_id, checkin, checkout, status, total_price) VALUES 
-(1, 2, '2024-01-15', '2024-01-18', 'confirmed', 450.00),
-(1, 3, '2024-01-22', '2024-01-25', 'pending', 750.00);
+INSERT INTO rooms (type, price, status, description, amenities) VALUES 
+('Single', 100.00, 'available', 'Comfortable single room with basic amenities', 'WiFi, TV, AC, Private Bathroom'),
+('Double', 150.00, 'available', 'Spacious double room perfect for couples', 'WiFi, TV, AC, Private Bathroom, Mini Bar'),
+('Suite', 250.00, 'available', 'Luxurious suite with premium amenities', 'WiFi, TV, AC, Private Bathroom, Mini Bar, Living Area'),
+('Deluxe', 200.00, 'available', 'Deluxe room with extra space and comfort', 'WiFi, TV, AC, Private Bathroom, Mini Bar, Balcony');
 
 -- Create indexes for better performance
 CREATE INDEX idx_user_email ON users(email);
+CREATE INDEX idx_user_username ON users(username);
 CREATE INDEX idx_room_type ON rooms(type);
 CREATE INDEX idx_booking_dates ON bookings(checkin, checkout);
 CREATE INDEX idx_booking_status ON bookings(status);
@@ -94,5 +96,5 @@ SELECT
     COUNT(*) as bookings,
     SUM(total_price) as revenue
 FROM bookings 
-WHERE status = 'confirmed'
+WHERE status IN ('confirmed', 'checked_in', 'checked_out')
 GROUP BY YEAR(created_at), MONTH(created_at);

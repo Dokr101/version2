@@ -6,29 +6,68 @@ require_once 'includes/config.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HRMS - Hotel Room Management System</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Hotel Room Management System</title>
+    <link rel="stylesheet" href="/version2/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        
+        .featured-rooms {
+            padding: 80px 0;
+            background-color: var(--white-dove);
+        }
+        
+        .room-card-home {
+            text-align: center;
+            padding: 30px 20px;
+            transition: var(--transition);
+            height: 100%;
+        }
+        
+        .room-card-home:hover {
+            transform: translateY(-5px);
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
+  
 
     <!-- Hero Section -->
-    <section class="hero">
+    <section class="hero-section">
         <div class="container">
             <div class="hero-logo">
-                <img src="logo.png" alt="HRMS Logo">
+                <div class="logo-circle" style="width: 120px; height: 120px; background: rgba(255, 255, 255, 0.2); margin: 0 auto 30px; color: white;">
+                    <i class="fas fa-hotel" style="font-size: 3rem;"></i>
+                </div>
             </div>
-            <h1>Welcome to HRMS</h1>
-            <p>Experience luxury and comfort with our premium hotel room management system. Find your perfect stay with ease.</p>
+            <h1 style="font-size: 3rem; margin-bottom: 20px; font-weight: 700;">Welcome to Our Lobby</h1>
+            <p style="font-size: 1.2rem; max-width: 600px; margin: 0 auto 30px; opacity: 0.9;">
+                Experience luxury and comfort with our premium hotel room management system. 
+                Find your perfect stay with ease.
+            </p>
             
             <?php if (!isset($_SESSION['user_id'])): ?>
-                <div class="auth-buttons">
-                    <a href="auth/login.php" class="btn btn-primary btn-large">Get Started</a>
+                <div class="auth-buttons" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <a href="auth/login.php" class="btn btn-primary" style="padding: 12px 30px; font-size: 1.1rem; background: white; color: var(--primary);">Get Started</a>
+                    <a href="rooms.php" class="btn btn-outline" style="border-color: white; color: white; padding: 12px 30px; font-size: 1.1rem;">View Rooms</a>
                 </div>
             <?php else: ?>
                 <div class="dashboard-link">
-                    <a href="<?php echo $_SESSION['role'] === 'admin' ? 'admin_dashboard.php' : 'dashboard.php'; ?>" 
-                       class="btn btn-primary btn-large">
+                    <a href="<?php echo $_SESSION['role'] === 'admin' ? 'admin_dashboard.php' : 
+                                         ($_SESSION['role'] === 'staff' ? 'staff_dashboard.php' : 'guest_dashboard.php'); ?>" 
+                       class="btn btn-primary" style="padding: 12px 30px; font-size: 1.1rem; background: white; color: var(--primary);">
                         Go to Dashboard
                     </a>
                 </div>
@@ -36,7 +75,9 @@ require_once 'includes/config.php';
         </div>
     </section>
 
-    <!-- Why Choose Us Section -->
+    <!-- Featured Rooms Section -->
+    
+
     <section class="why-choose-us">
         <div class="container">
             <div class="section-header">
@@ -96,58 +137,34 @@ require_once 'includes/config.php';
         </div>
     </section>
 
-    <!-- Rooms Preview Section -->
-    <section class="why-choose-us" style="background-color: #f8f9fa;">
+    <!-- Call to Action Section -->
+    <?php if (!isset($_SESSION['user_id'])): ?>
+    <section class="cta-section">
         <div class="container">
-            <div class="section-header">
-                <h2>Our Room Types</h2>
-                <p>Discover our variety of comfortable accommodations</p>
+            <h2 style="margin-bottom: 15px; color: white; font-size: 1.8rem;">Ready to Book Your Stay?</h2>
+            <p style="margin-bottom: 25px; opacity: 0.9; font-size: 1.1rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Create an account or login to book rooms, manage your bookings, and enjoy exclusive features.
+            </p>
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <a href="auth/login.php" class="btn btn-primary" style="background: white; color: var(--primary); padding: 12px 25px;">Login</a>
+                <a href="auth/signup.php" class="btn btn-outline" style="border-color: white; color: white; padding: 12px 25px;">Sign Up</a>
             </div>
-            
-            <div class="features-grid">
-                <div class="feature-item">
-                    <h3>Single Room</h3>
-                    <p class="price">From Rs.100/night</p>
-                    <p>Perfect for solo travelers with all essential amenities</p>
-                </div>
-                
-                <div class="feature-item">
-                    <h3>Double Room</h3>
-                    <p class="price">From Rs.150/night</p>
-                    <p>Spacious accommodation ideal for couples or friends</p>
-                </div>
-                
-                <div class="feature-item">
-                    <h3>Deluxe Room</h3>
-                    <p class="price">From Rs.200/night</p>
-                    <p>Extra comfort and space with premium amenities</p>
-                </div>
-                
-                <div class="feature-item">
-                    <h3>Suite</h3>
-                    <p class="price">From Rs.250/night</p>
-                    <p>Luxurious suite with separate living area and premium services</p>
-                </div>
-            </div>
-
-
-            <?php if (!isset($_SESSION['user_id'])): ?>
-            <section class="card" style="margin-top: 40px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white;">
-                <div style="text-align: center; padding: 30px;">
-                    <h2 style="margin-bottom: 15px; color: white;">Ready to Book Your Stay?</h2>
-                    <p style="margin-bottom: 25px; opacity: 0.9;">
-                        Create an account or login to book rooms, manage your bookings, and enjoy exclusive features.
-                    </p>
-                    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                        <a href="auth/login.php" class="btn btn-primary" style="background: white; color: var(--primary);">Login</a>
-                        <a href="auth/signup.php" class="btn btn-outline" style="border-color: white; color: white;">Sign Up</a>
-                    </div>
-                </div>
-            </section>
-            <?php endif; ?>
         </div>
     </section>
+    <?php endif; ?>
 
-    <?php include 'includes/footer.php'; ?>
+    <!-- Footer -->
+    <footer style="background-color: var(--primary-dark); color: white; padding: 50px 0 20px;">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 30px;">
+                <div>
+                    <h4 style="color: white; margin-bottom: 15px;">Contact Info</h4>
+                    <p style="opacity: 0.8;"><i class="fas fa-map-marker-alt"></i> Chowk tira</p>
+                    <p style="opacity: 0.8;"><i class="fas fa-phone"></i> +977 9803040024</p>
+                    <p style="opacity: 0.8;"><i class="fas fa-envelope"></i> hotel@hrms.com</p>
+                </div>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

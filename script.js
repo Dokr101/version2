@@ -1,197 +1,24 @@
-// Main JavaScript for HRMS
+// Main JavaScript for Hotel Management System
 document.addEventListener('DOMContentLoaded', function() {
-    // Authentication Form Switcher
-    const authTabs = document.querySelectorAll('.auth-tab');
-    const authForms = document.querySelectorAll('.auth-form');
-    
-    if (authTabs.length > 0) {
-        authTabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                const target = this.getAttribute('data-target');
-                
-                // Remove active class from all tabs and forms
-                authTabs.forEach(t => t.classList.remove('active'));
-                authForms.forEach(f => f.classList.remove('active'));
-                
-                // Add active class to current tab and form
-                this.classList.add('active');
-                document.getElementById(target).classList.add('active');
-            });
-        });
-    }
-    
-    // Form validation for login
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            
-            if (!validateEmail(email)) {
-                showAlert('Please enter a valid email address', 'error');
-                return;
-            }
-            
-            if (password.length < 6) {
-                showAlert('Password must be at least 6 characters', 'error');
-                return;
-            }
-            
-            // Submit form if validation passes
-            this.submit();
-        });
-    }
-    
-    // Form validation for signup
-    const signupForm = document.getElementById('signup-form');
-    if (signupForm) {
-        signupForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('signup-name').value;
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const confirmPassword = document.getElementById('signup-confirm-password').value;
-            
-            if (name.trim().length < 2) {
-                showAlert('Please enter your full name', 'error');
-                return;
-            }
-            
-            if (!validateEmail(email)) {
-                showAlert('Please enter a valid email address', 'error');
-                return;
-            }
-            
-            if (password.length < 6) {
-                showAlert('Password must be at least 6 characters', 'error');
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                showAlert('Passwords do not match', 'error');
-                return;
-            }
-            
-            // Submit form if validation passes
-            this.submit();
-        });
-    }
-    
-    // Date validation for booking forms
-    const checkinInput = document.getElementById('checkin');
-    const checkoutInput = document.getElementById('checkout');
-    
-    if (checkinInput && checkoutInput) {
-        const today = new Date().toISOString().split('T')[0];
-        checkinInput.min = today;
-        
-        checkinInput.addEventListener('change', function() {
-            checkoutInput.min = this.value;
-            if (checkoutInput.value && checkoutInput.value < this.value) {
-                checkoutInput.value = '';
-            }
-        });
-    }
-    
-    // Room availability check
-    const checkAvailabilityBtn = document.getElementById('check-availability');
-    if (checkAvailabilityBtn) {
-        checkAvailabilityBtn.addEventListener('click', checkRoomAvailability);
-    }
-    
-    // Payment simulation
-    const payButtons = document.querySelectorAll('.pay-btn');
-    payButtons.forEach(btn => {
-        btn.addEventListener('click', simulatePayment);
-    });
-    
-    // Modal functionality
+    // Initialize all components
     initializeModals();
+    initializeForms();
+    initializeDatePickers();
+    initializeFilters();
     
-    // Initialize any other components
-    initializeComponents();
-});
-
-// Utility Functions
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
-
-function showAlert(message, type) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type}`;
-    alertDiv.textContent = message;
-    
-    // Insert at the top of the form container
-    const formContainer = document.querySelector('.auth-container') || document.querySelector('.form-container');
-    if (formContainer) {
-        formContainer.insertBefore(alertDiv, formContainer.firstChild);
-        
-        // Remove alert after 5 seconds
+    // Auto-hide alerts after 5 seconds
+    const autoAlerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+    autoAlerts.forEach(alert => {
         setTimeout(() => {
-            alertDiv.remove();
+            alert.style.opacity = '0';
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 300);
         }, 5000);
-    }
-}
-
-// Room Availability Check
-function checkRoomAvailability() {
-    const checkin = document.getElementById('checkin').value;
-    const checkout = document.getElementById('checkout').value;
-    const roomType = document.getElementById('room-type').value;
-    
-    if (!checkin || !checkout) {
-        showAlert('Please select both check-in and check-out dates', 'error');
-        return;
-    }
-    
-    // Show loading state
-    const resultsDiv = document.getElementById('availability-results');
-    resultsDiv.innerHTML = '<div class="alert">Checking availability...</div>';
-    
-    // Simulate AJAX request
-    setTimeout(() => {
-        const isAvailable = Math.random() > 0.3; // 70% chance of availability
-        
-        if (isAvailable) {
-            resultsDiv.innerHTML = `
-                <div class="alert alert-success">
-                    Room is available! 
-                    <button class="btn btn-primary" style="margin-left: 10px;">Book Now</button>
-                </div>
-            `;
-        } else {
-            resultsDiv.innerHTML = `
-                <div class="alert alert-error">
-                    Sorry, no rooms available for the selected dates.
-                </div>
-            `;
-        }
-    }, 1500);
-}
-
-// Payment Simulation
-function simulatePayment(event) {
-    const bookingId = event.target.getAttribute('data-booking-id');
-    
-    if (confirm('Confirm payment for this booking?')) {
-        // Show loading state
-        event.target.textContent = 'Processing...';
-        event.target.disabled = true;
-        
-        // Simulate payment processing
-        setTimeout(() => {
-            showAlert('Payment confirmed! Booking status updated.', 'success');
-            event.target.textContent = 'Pay Now';
-            event.target.disabled = false;
-            
-            // In a real app, this would reload the page or update the UI
-            location.reload();
-        }, 2000);
-    }
-}
+    });
+});
 
 // Modal Management
 function initializeModals() {
@@ -214,7 +41,140 @@ function initializeModals() {
     });
 }
 
-// Open modal function
+// Form Initialization
+function initializeForms() {
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn && !submitBtn.disabled) {
+                submitBtn.disabled = true;
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                
+                // Re-enable button after 5 seconds (in case of error)
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }, 5000);
+            }
+        });
+    });
+}
+
+// Date Picker Initialization
+function initializeDatePickers() {
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    const today = new Date().toISOString().split('T')[0];
+    
+    dateInputs.forEach(input => {
+        if (!input.min) {
+            input.min = today;
+        }
+    });
+    
+    // Check-in/Check-out date validation
+    const checkinInputs = document.querySelectorAll('input[name="checkin"]');
+    const checkoutInputs = document.querySelectorAll('input[name="checkout"]');
+    
+    checkinInputs.forEach(checkin => {
+        checkin.addEventListener('change', function() {
+            const tomorrow = new Date(this.value);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+            
+            checkoutInputs.forEach(checkout => {
+                checkout.min = tomorrowStr;
+                if (checkout.value && checkout.value <= this.value) {
+                    checkout.value = '';
+                }
+            });
+        });
+    });
+}
+
+// Filter Initialization
+function initializeFilters() {
+    const filterSelects = document.querySelectorAll('select[onchange*="filter"]');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            if (typeof window[this.getAttribute('onchange').split('(')[0]] === 'function') {
+                eval(this.getAttribute('onchange'));
+            }
+        });
+    });
+}
+
+// Room Filtering Function
+function filterRooms() {
+    const typeFilter = document.getElementById('type-filter')?.value || '';
+    const priceFilter = document.getElementById('price-filter')?.value || '';
+    
+    const roomCards = document.querySelectorAll('.room-card');
+    let visibleCount = 0;
+    
+    roomCards.forEach(card => {
+        const roomType = card.dataset.type;
+        const roomPrice = parseFloat(card.dataset.price);
+        
+        let show = true;
+        
+        // Type filter
+        if (typeFilter && roomType !== typeFilter) {
+            show = false;
+        }
+        
+        // Price filter
+        if (priceFilter === 'low' && roomPrice >= 150) {
+            show = false;
+        } else if (priceFilter === 'medium' && (roomPrice < 150 || roomPrice > 250)) {
+            show = false;
+        } else if (priceFilter === 'high' && roomPrice <= 250) {
+            show = false;
+        }
+        
+        card.style.display = show ? 'block' : 'none';
+        if (show) visibleCount++;
+    });
+
+    // Show message if no rooms match filters
+    const roomsGrid = document.querySelector('.rooms-grid');
+    let noResultsMsg = document.getElementById('no-results-message');
+    
+    if (visibleCount === 0) {
+        if (!noResultsMsg) {
+            noResultsMsg = document.createElement('div');
+            noResultsMsg.id = 'no-results-message';
+            noResultsMsg.className = 'card';
+            noResultsMsg.style.textAlign = 'center';
+            noResultsMsg.style.padding = '40px';
+            noResultsMsg.style.gridColumn = '1 / -1';
+            noResultsMsg.innerHTML = `
+                <h3 style="color: #6c757d; margin-bottom: 15px;">No Rooms Match Your Filters</h3>
+                <p style="color: #6c757d; margin-bottom: 20px;">Try adjusting your filters to see more options.</p>
+                <button class="btn btn-outline" onclick="resetFilters()">Reset Filters</button>
+            `;
+            if (roomsGrid) {
+                roomsGrid.appendChild(noResultsMsg);
+            }
+        }
+    } else if (noResultsMsg) {
+        noResultsMsg.remove();
+    }
+}
+
+// Reset Filters Function
+function resetFilters() {
+    const typeFilter = document.getElementById('type-filter');
+    const priceFilter = document.getElementById('price-filter');
+    
+    if (typeFilter) typeFilter.value = '';
+    if (priceFilter) priceFilter.value = '';
+    
+    filterRooms();
+}
+
+// Open Modal Function
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
@@ -222,7 +182,7 @@ function openModal(modalId) {
     }
 }
 
-// Close modal function
+// Close Modal Function
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
@@ -230,64 +190,71 @@ function closeModal(modalId) {
     }
 }
 
-// Room Filtering
-function filterRooms() {
-    const typeFilter = document.getElementById('type-filter').value;
-    const priceFilter = document.getElementById('price-filter').value;
+// Price Calculation for Booking Modal
+function calculateBookingPrice() {
+    const checkin = document.getElementById('checkin')?.value;
+    const checkout = document.getElementById('checkout')?.value;
+    const roomPriceElem = document.getElementById('room_price');
+    const totalNightsElem = document.getElementById('total_nights_text');
+    const totalPriceElem = document.getElementById('total_price_text');
+    const confirmBtn = document.getElementById('confirmBookingBtn');
     
-    const roomCards = document.querySelectorAll('.room-card');
-    roomCards.forEach(card => {
-        const roomType = card.dataset.type;
-        const roomPrice = parseFloat(card.dataset.price);
+    if (!checkin || !checkout || !roomPriceElem || !totalNightsElem || !totalPriceElem || !confirmBtn) {
+        return;
+    }
+    
+    if (checkin && checkout) {
+        const checkinDate = new Date(checkin);
+        const checkoutDate = new Date(checkout);
+        const nights = (checkoutDate - checkinDate) / (1000 * 60 * 60 * 24);
         
-        let show = true;
-        
-        if (typeFilter && roomType !== typeFilter) {
-            show = false;
+        if (nights > 0) {
+            const roomPrice = parseFloat(roomPriceElem.value.replace('Rs.', '').replace('/night', ''));
+            const totalPrice = roomPrice * nights;
+            
+            totalNightsElem.textContent = nights + ' night' + (nights > 1 ? 's' : '');
+            totalPriceElem.textContent = 'Rs.' + totalPrice.toFixed(2);
+            confirmBtn.disabled = false;
+        } else {
+            totalNightsElem.textContent = '0 nights';
+            totalPriceElem.textContent = 'Rs. 0';
+            confirmBtn.disabled = true;
         }
-        
-        if (priceFilter === 'low' && roomPrice > 150) {
-            show = false;
-        } else if (priceFilter === 'medium' && (roomPrice <= 150 || roomPrice > 250)) {
-            show = false;
-        } else if (priceFilter === 'high' && roomPrice <= 250) {
-            show = false;
-        }
-        
-        card.style.display = show ? 'block' : 'none';
+    } else {
+        totalNightsElem.textContent = '0 nights';
+        totalPriceElem.textContent = 'Rs. 0';
+        confirmBtn.disabled = true;
+    }
+}
+
+// AJAX Helper Functions
+function makeRequest(url, data, method = 'POST') {
+    return fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(data)
+    })
+    .then(response => response.json())
+    .catch(error => {
+        console.error('Error:', error);
+        return { success: false, message: 'Network error occurred' };
     });
 }
 
-// Initialize various components
-function initializeComponents() {
-    // Auto-hide alerts after 5 seconds
-    const autoAlerts = document.querySelectorAll('.alert:not(.alert-permanent)');
-    autoAlerts.forEach(alert => {
-        setTimeout(() => {
-            alert.style.opacity = '0';
-            setTimeout(() => {
-                if (alert.parentNode) {
-                    alert.parentNode.removeChild(alert);
-                }
-            }, 300);
-        }, 5000);
-    });
-    
-    // Add loading states to forms
-    const forms = document.querySelectorAll('form');
-    forms.forEach(form => {
-        form.addEventListener('submit', function() {
-            const submitBtn = this.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            }
-        });
+// Room Availability Check
+function checkRoomAvailability(roomId, checkin, checkout) {
+    return makeRequest('includes/functions.php?action=check_availability', {
+        room_id: roomId,
+        checkin: checkin,
+        checkout: checkout
     });
 }
 
-// Make functions available globally
+// Export functions to global scope
 window.filterRooms = filterRooms;
+window.resetFilters = resetFilters;
 window.openModal = openModal;
 window.closeModal = closeModal;
-
+window.calculateBookingPrice = calculateBookingPrice;
