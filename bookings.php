@@ -67,7 +67,7 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo (isAdmin() || isStaff()) ? 'All Bookings' : 'My Bookings'; ?> - Hotel MS</title>
+    <title><?php echo (isAdmin() || isStaff()) ? 'All Bookings' : 'My Bookings'; ?> - HRMS</title>
     <link rel="stylesheet" href="/version2/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -79,8 +79,8 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="logo-circle">
                     <i class="fas fa-hotel"></i>
                 </div>
-                <div class="logo-text">Hotel MS</div>
-                <div class="logo-subtitle"><?php echo isAdmin() ? 'Admin Panel' : (isStaff() ? 'Staff Panel' : 'Guest Portal'); ?></div>
+                <div class="logo-text">HRMS</div>
+                <div class="logo-subtitle"><?php echo isAdmin() ? 'Admin Panel' : htmlspecialchars($_SESSION['name']); ?></div>
             </div>
             <ul class="sidebar-menu">
                 <?php if (isAdmin()): ?>
@@ -91,11 +91,11 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <li><a href="/version2/admin/payments.php"><i class="fas fa-credit-card"></i> Payment Records</a></li>
                     <li><a href="/version2/admin/reports.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
                 <?php elseif (isStaff()): ?>
-                    <li><a href="/version2/hotel staff/staff_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="/version2/hotel staff/staff_checkin.php"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
-                    <li><a href="/version2/hotel staff/staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
-                    <li><a href="/version2/hotel staff/staff_reservations.php"><i class="fas fa-calendar-check"></i> Reservations</a></li>
-                    <li><a href="/version2/hotel staff/staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
+                    <li><a href="/version2/hotel_staff/staff_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="/version2/hotel_staff/staff_checkin.php"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
+                    <li><a href="/version2/hotel_staff/staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
+                    <li><a href="/version2/hotel_staff/staff_reservations.php"><i class="fas fa-calendar-check"></i> Reservations</a></li>
+                    <li><a href="/version2/hotel_staff/staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
                     <li><a href="/version2/bookings.php" class="active"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
                 <?php else: ?>
                     <li><a href="/version2/guest/guest_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
@@ -134,8 +134,8 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             <?php else: ?>
                 <div class="card">
-                    <div class="table-container">
-                        <table>
+                    <div class="table-container" style="overflow-x: auto;">
+                        <table style="min-width: 1400px; width: 100%;">
                             <thead>
                                 <tr>
                                     <th>Booking ID</th>
@@ -151,7 +151,7 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <th>Booking Status</th>
                                     <th>Payment Status</th>
                                     <th>Booked On</th>
-                                    <th>Actions</th>
+                                    <th style="min-width: 150px;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -166,7 +166,13 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <td><?php echo date('M j, Y', strtotime($booking['checkin'])); ?></td>
                                     <td><?php echo date('M j, Y', strtotime($booking['checkout'])); ?></td>
                                     <td><?php echo $booking['guests']; ?></td>
-                                    <td>Rs.<?php echo number_format($booking['total_price'], 2); ?></td>
+                                    <td>
+                                        <?php if ($booking['status'] === 'cancelled'): ?>
+                                            <span style="color: #6c757d;">-</span>
+                                        <?php else: ?>
+                                            Rs.<?php echo number_format($booking['total_price'], 2); ?>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <span class="status <?php echo $booking['status']; ?>">
                                             <?php echo ucfirst($booking['status']); ?>
@@ -178,18 +184,32 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         $payment_class = '';
                                         $payment_icon = '';
                                         
-                                        switch($payment_status) {
-                                            case 'paid':
-                                                $payment_class = 'confirmed';
-                                                $payment_icon = 'fa-check-circle';
-                                                break;
-                                            case 'refunded':
-                                                $payment_class = 'cancelled';
-                                                $payment_icon = 'fa-undo';
-                                                break;
-                                            default:
-                                                $payment_class = 'pending';
-                                                $payment_icon = 'fa-clock';
+                                        // For cancelled bookings, show N/A for admin/staff
+                                        if ($booking['status'] === 'cancelled' && (isAdmin() || isStaff())) {
+                                            $payment_status = 'N/A';
+                                            $payment_class = 'cancelled';
+                                            $payment_icon = 'fa-ban';
+                                        } 
+                                        // For confirmed bookings with pending payment, assume paid for admin/staff
+                                        elseif ($booking['status'] === 'confirmed' && $payment_status === 'pending' && (isAdmin() || isStaff())) {
+                                            $payment_status = 'paid';
+                                            $payment_class = 'confirmed';
+                                            $payment_icon = 'fa-check-circle';
+                                        } 
+                                        else {
+                                            switch($payment_status) {
+                                                case 'paid':
+                                                    $payment_class = 'confirmed';
+                                                    $payment_icon = 'fa-check-circle';
+                                                    break;
+                                                case 'refunded':
+                                                    $payment_class = 'cancelled';
+                                                    $payment_icon = 'fa-undo';
+                                                    break;
+                                                default:
+                                                    $payment_class = 'pending';
+                                                    $payment_icon = 'fa-clock';
+                                            }
                                         }
                                         ?>
                                         <span class="status <?php echo $payment_class; ?>" style="display: inline-flex; align-items: center; gap: 5px;">
@@ -202,11 +222,14 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                                             <?php if (isAdmin() || isStaff()): ?>
                                                 <!-- Admin and Staff Actions -->
-                                                <button class="btn btn-outline edit-booking-btn" 
-                                                        data-booking-id="<?php echo $booking['booking_id']; ?>"
-                                                        data-status="<?php echo $booking['status']; ?>">
-                                                    Edit
-                                                </button>
+                                                <?php if ($booking['status'] !== 'cancelled'): ?>
+                                                    <!-- Only show Edit button for non-cancelled bookings -->
+                                                    <button class="btn btn-outline edit-booking-btn" 
+                                                            data-booking-id="<?php echo $booking['booking_id']; ?>"
+                                                            data-status="<?php echo $booking['status']; ?>">
+                                                        Edit
+                                                    </button>
+                                                <?php endif; ?>
                                                 <?php if (isAdmin()): ?>
                                                     <form method="POST" style="display: inline;">
                                                         <input type="hidden" name="booking_id" value="<?php echo $booking['booking_id']; ?>">
@@ -218,8 +241,8 @@ $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                 <?php endif; ?>
                                             <?php else: ?>
                                                 <!-- Guest Actions -->
-                                                <?php if ($payment_status === 'pending'): ?>
-                                                    <!-- Pay Now Button for Unpaid Bookings -->
+                                                <?php if ($payment_status === 'pending' && $booking['status'] !== 'cancelled'): ?>
+                                                    <!-- Pay Now Button for Unpaid Bookings (not shown for cancelled) -->
                                                     <a href="/version2/guest/process_payment.php?booking_id=<?php echo $booking['booking_id']; ?>" 
                                                        class="btn btn-primary" 
                                                        style="background: linear-gradient(135deg, #5C2D91, #7C3AAF); border: none; display: inline-flex; align-items: center; gap: 5px;">

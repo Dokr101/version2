@@ -18,6 +18,6 @@ define('KHALTI_PUBLIC_KEY', 'c2f3a0c0a3714fde883e4d57555f39c6');
 define('KHALTI_SECRET_KEY', '84e4e3ea15914437a2d581cf4fccb801');
 
 // Payment configuration
-define('KHALTI_MERCHANT_NAME', 'Hotel Management System');
+define('KHALTI_MERCHANT_NAME', 'Hotel Room Management System');
 define('KHALTI_CURRENCY', 'NPR'); // Nepalese Rupee
 ?>

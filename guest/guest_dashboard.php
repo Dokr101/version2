@@ -45,7 +45,7 @@ $total_spent = array_sum(array_column($bookings, 'total_price'));
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Hotel MS</title>
+    <title>Dashboard - HRMS</title>
     <link rel="stylesheet" href="/version2/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -57,8 +57,8 @@ $total_spent = array_sum(array_column($bookings, 'total_price'));
                 <div class="logo-circle">
                     <i class="fas fa-hotel"></i>
                 </div>
-                <div class="logo-text">Hotel MS</div>
-                <div class="logo-subtitle">Guest Portal</div>
+                <div class="logo-text">HRMS</div>
+                <div class="logo-subtitle"><?php echo htmlspecialchars($_SESSION['name']); ?></div>
             </div>
             <ul class="sidebar-menu">
                 <li><a href="/version2/guest/guest_dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
@@ -72,7 +72,7 @@ $total_spent = array_sum(array_column($bookings, 'total_price'));
         <!-- Content Area -->
         <main class="content">
             <div class="page-header">
-                <h1>Welcome back, <?php echo $_SESSION['name']; ?>!</h1>
+                <h1>Welcome, <?php echo $_SESSION['name']; ?>!</h1>
                 <p>Here's an overview of your bookings and account</p>
             </div>
             

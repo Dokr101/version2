@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['error'] = "Failed to cancel reservation.";
         }
     }
-    header("Location: /version2/hotel staff/staff_reservations.php");
+    header("Location: /version2/hotel_staff/staff_reservations.php");
     exit();
 }
 
@@ -45,7 +45,7 @@ $reservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Reservations - Hotel MS</title>
+    <title>Manage Reservations - HRMS</title>
     <link rel="stylesheet" href="/version2/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -57,15 +57,15 @@ $reservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="logo-circle">
                     <i class="fas fa-hotel"></i>
                 </div>
-                <div class="logo-text">Hotel MS</div>
-                <div class="logo-subtitle">Staff Panel</div>
+                <div class="logo-text">HRMS</div>
+                <div class="logo-subtitle" style="font-weight: bold; font-size: 0.75rem; opacity: 0.9; margin-bottom: 3px;">Hotel Staff</div>
+                <div class="logo-subtitle"><?php echo htmlspecialchars($_SESSION['name']); ?></div>
             </div>
             <ul class="sidebar-menu">
-                <li><a href="/version2/hotel staff/staff_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="/version2/hotel staff/staff_checkin.php"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
-                <li><a href="/version2/hotel staff/staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
-                <li><a href="/version2/hotel staff/staff_reservations.php" class="active"><i class="fas fa-calendar-check"></i> Reservations</a></li>
-                <li><a href="/version2/hotel staff/staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
+                <li><a href="/version2/hotel_staff/staff_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="/version2/hotel_staff/staff_checkin.php"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
+                <li><a href="/version2/hotel_staff/staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
+                <li><a href="/version2/hotel_staff/staff_reservations.php" class="active"><i class="fas fa-calendar-check"></i> Reservations</a></li>
                 <li><a href="/version2/auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </aside>

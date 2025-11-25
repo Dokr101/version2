@@ -79,7 +79,7 @@ $room_stats = $stmt->fetch(PDO::FETCH_ASSOC);
         <main class="content">
             <div class="page-header">
                 <h1>Admin Dashboard</h1>
-                <p>Welcome back, <?php echo $_SESSION['name']; ?>. Here's your system overview.</p>
+                <p>Welcome, <?php echo $_SESSION['name']; ?>. Here's your system overview.</p>
             </div>
             
             <!-- Stats Grid -->

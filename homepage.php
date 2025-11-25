@@ -66,7 +66,7 @@ require_once 'includes/config.php';
             <?php else: ?>
                 <div class="dashboard-link">
                     <a href="<?php echo $_SESSION['role'] === 'admin' ? '/version2/admin/admin_dashboard.php' : 
-                                         ($_SESSION['role'] === 'staff' ? '/version2/hotel staff/staff_dashboard.php' : '/version2/guest/guest_dashboard.php'); ?>" 
+                                         ($_SESSION['role'] === 'staff' ? '/version2/hotel_staff/staff_dashboard.php' : '/version2/guest/guest_dashboard.php'); ?>" 
                        class="btn btn-primary" style="padding: 12px 30px; font-size: 1.1rem; background: white; color: var(--primary);">
                         Go to Dashboard
                     </a>
@@ -81,7 +81,7 @@ require_once 'includes/config.php';
     <section class="why-choose-us">
         <div class="container">
             <div class="section-header">
-                <h2>Why Choose Us</h2>
+                <h2>Why Choose Us!</h2>
                 <p>Everything you need for a perfect stay experience</p>
             </div>
             

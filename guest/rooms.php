@@ -51,8 +51,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_room'])) {
     }
 }
 
-// Get all available rooms
-$stmt = $pdo->query("SELECT * FROM rooms WHERE status = 'available'");
+// Get all available rooms with their current booking information
+$stmt = $pdo->query("
+    SELECT r.*, 
+           b.checkin as booked_from, 
+           b.checkout as booked_until,
+           b.status as booking_status,
+           u.name as booked_by
+    FROM rooms r
+    LEFT JOIN bookings b ON r.room_id = b.room_id 
+        AND b.status IN ('pending', 'confirmed', 'checked_in')
+        AND b.checkout >= CURDATE()
+    LEFT JOIN users u ON b.user_id = u.id
+    WHERE r.status IN ('available', 'occupied')
+    ORDER BY r.status ASC, r.room_id ASC
+");
 $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Get unique room types for filter
@@ -69,7 +82,7 @@ foreach ($rooms as $room) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Rooms - Hotel MS</title>
+    <title>Our Rooms - HRMS</title>
     <link rel="stylesheet" href="/version2/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -82,8 +95,8 @@ foreach ($rooms as $room) {
                 <div class="logo-circle">
                     <i class="fas fa-hotel"></i>
                 </div>
-                <div class="logo-text">Hotel MS</div>
-                <div class="logo-subtitle"><?php echo isAdmin() ? 'Admin Panel' : (isStaff() ? 'Staff Panel' : 'Guest Portal'); ?></div>
+                <div class="logo-text">HRMS</div>
+                <div class="logo-subtitle"><?php echo isAdmin() ? 'Admin Panel' : htmlspecialchars($_SESSION['name']); ?></div>
             </div>
             <ul class="sidebar-menu">
                 <?php if (isAdmin()): ?>
@@ -94,11 +107,11 @@ foreach ($rooms as $room) {
                     <li><a href="/version2/admin/payments.php"><i class="fas fa-credit-card"></i> Payment Records</a></li>
                     <li><a href="/version2/admin/reports.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
                 <?php elseif (isStaff()): ?>
-                    <li><a href="/version2/hotel staff/staff_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="/version2/hotel staff/staff_checkin.php"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
-                    <li><a href="/version2/hotel staff/staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
-                    <li><a href="/version2/hotel staff/staff_reservations.php"><i class="fas fa-calendar-check"></i> Reservations</a></li>
-                    <li><a href="/version2/hotel staff/staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
+                    <li><a href="/version2/hotel_staff/staff_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="/version2/hotel_staff/staff_checkin.php"><i class="fas fa-sign-in-alt"></i> Check-in</a></li>
+                    <li><a href="/version2/hotel_staff/staff_checkout.php"><i class="fas fa-sign-out-alt"></i> Check-out</a></li>
+                    <li><a href="/version2/hotel_staff/staff_reservations.php"><i class="fas fa-calendar-check"></i> Reservations</a></li>
+                    <li><a href="/version2/hotel_staff/staff_payments.php"><i class="fas fa-credit-card"></i> Process Payments</a></li>
                     <li><a href="/version2/bookings.php"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
                 <?php else: ?>
                     <li><a href="/version2/guest/guest_dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
@@ -175,22 +188,47 @@ foreach ($rooms as $room) {
                             <strong>Amenities:</strong> <?php echo $room['amenities']; ?>
                         </p>
                         
+                        <?php 
+                        // Determine if room is currently booked
+                        $isBooked = !empty($room['booked_from']) && !empty($room['booked_until']);
+                        $isAvailableNow = !$isBooked || ($room['status'] === 'available');
+                        ?>
+                        
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-                            <span class="status available">Available</span>
+                            <?php if ($isBooked): ?>
+                                <div style="flex: 1;">
+                                    <span class="status <?php echo $room['booking_status'] === 'checked_in' ? 'checked_in' : 'pending'; ?>" style="display: block; margin-bottom: 8px;">
+                                        <?php echo $room['booking_status'] === 'checked_in' ? 'Occupied' : 'Booked'; ?>
+                                    </span>
+                                    <small style="color: var(--secondary); display: block; line-height: 1.4;">
+                                        <i class="fas fa-calendar"></i>
+                                        <?php echo date('M j', strtotime($room['booked_from'])); ?> - <?php echo date('M j, Y', strtotime($room['booked_until'])); ?>
+                                        <?php if (isAdmin() || isStaff()): ?>
+                                            <br><i class="fas fa-user"></i> <?php echo htmlspecialchars($room['booked_by']); ?>
+                                        <?php endif; ?>
+                                    </small>
+                                </div>
+                            <?php else: ?>
+                                <span class="status available">Available</span>
+                            <?php endif; ?>
                             
-                            <?php if (isLoggedIn() && isGuest()): ?>
+                            <?php if (isLoggedIn() && isGuest() && !$isBooked): ?>
                                 <button class="btn btn-primary book-now-btn" 
                                         data-room-id="<?php echo $room['room_id']; ?>"
                                         data-room-type="<?php echo $room['type']; ?>"
                                         data-room-price="<?php echo $room['price']; ?>">
                                     Book Now
                                 </button>
-                            <?php elseif (!isLoggedIn()): ?>
+                            <?php elseif (isLoggedIn() && isGuest() && $isBooked): ?>
+                                <button class="btn btn-outline" disabled style="opacity: 0.6;">
+                                    Unavailable
+                                </button>
+                            <?php elseif (!isLoggedIn() && !$isBooked): ?>
                                 <a href="/version2/auth/login.php" class="btn btn-primary">Login to Book</a>
                             <?php endif; ?>
                         </div>
 
-                        <?php if (isLoggedIn() && isGuest()): ?>
+                        <?php if (isLoggedIn() && isGuest() && !$isBooked): ?>
                         <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--gray-light);">
                             <small style="color: var(--secondary);">
                                 <i class="fas fa-info-circle"></i> Click "Book Now" to select dates and complete booking

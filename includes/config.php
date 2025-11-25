@@ -71,7 +71,7 @@ function requireGuest() {
         if (isAdmin()) {
             header("Location: /version2/admin/admin_dashboard.php");
         } else {
-            header("Location: /version2/hotel staff/staff_dashboard.php");
+            header("Location: /version2/hotel_staff/staff_dashboard.php");
         }
         exit();
     }
