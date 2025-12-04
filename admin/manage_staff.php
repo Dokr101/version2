@@ -2,16 +2,17 @@
 require_once '../includes/config.php';
 requireAdmin();
 
-// Handle staff actions
+// Handle approve/reject actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['approve_staff'])) {
         $user_id = $_POST['user_id'];
         
+        // Update user status to active
         $stmt = $pdo->prepare("UPDATE users SET status = 'active' WHERE id = ? AND role = 'staff'");
         if ($stmt->execute([$user_id])) {
-            $_SESSION['success'] = "Staff member approved successfully!";
+            $_SESSION['success'] = "Staff account approved successfully!";
         } else {
-            $_SESSION['error'] = "Failed to approve staff member.";
+            $_SESSION['error'] = "Failed to approve staff account.";
         }
     } elseif (isset($_POST['delete_staff'])) {
         $user_id = $_POST['user_id'];
@@ -27,9 +28,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
-// Get all staff members
-$stmt = $pdo->query("SELECT * FROM users WHERE role = 'staff' ORDER BY created_at DESC");
-$staff_members = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Get pending staff (awaiting approval)
+$stmt = $pdo->query("SELECT * FROM users WHERE role = 'staff' AND status = 'pending' ORDER BY created_at DESC");
+$pending_staff = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Get active staff
+$stmt = $pdo->query("SELECT * FROM users WHERE role = 'staff' AND status = 'active' ORDER BY created_at DESC");
+$active_staff = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -78,16 +84,78 @@ $staff_members = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="alert alert-error"><?php echo $_SESSION['error']; unset($_SESSION['error']); ?></div>
             <?php endif; ?>
 
-            <!-- Staff List -->
+
+            <!-- Pending Staff Approvals -->
             <section class="card">
                 <div class="card-header">
-                    <h2>Staff Accounts</h2>
+                    <h2>Pending Approvals</h2>
+                    <span class="status <?php echo count($pending_staff) > 0 ? 'warning' : 'good'; ?>">
+                        <?php echo count($pending_staff); ?> Pending
+                    </span>
                 </div>
                 
-                <?php if (empty($staff_members)): ?>
-                    <div style="text-align: center; padding: 40px;">
-                        <h3 style="color: #6c757d; margin-bottom: 15px;">No Staff Members Found</h3>
-                        <p style="color: #6c757d;">No staff accounts have been created yet.</p>
+                <?php if (empty($pending_staff)): ?>
+                    <div style="text-align: center; padding: 30px; background: #f8f9fa; border-radius: 8px; margin: 15px;">
+                        <i class="fas fa-check-circle" style="font-size: 2.5rem; color: var(--success); margin-bottom: 10px;"></i>
+                        <p style="color: #6c757d; margin: 0;">No pending staff applications</p>
+                    </div>
+                <?php else: ?>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Applied On</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($pending_staff as $staff): ?>
+                                <tr style="background: #fff3cd;">
+                                    <td><strong><?php echo htmlspecialchars($staff['name']); ?></strong></td>
+                                    <td><?php echo htmlspecialchars($staff['username']); ?></td>
+                                    <td><?php echo htmlspecialchars($staff['email']); ?></td>
+                                    <td><?php echo htmlspecialchars($staff['phone']); ?></td>
+                                    <td><?php echo date('M j, Y', strtotime($staff['created_at'])); ?></td>
+                                    <td>
+                                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                            <form method="POST" style="display: inline;">
+                                                <input type="hidden" name="user_id" value="<?php echo $staff['id']; ?>">
+                                                <button type="submit" name="approve_staff" class="btn btn-primary" 
+                                                        onclick="return confirm('Approve this staff member?')">
+                                                    <i class="fas fa-check"></i> Approve
+                                                </button>
+                                            </form>
+                                            <form method="POST" style="display: inline;">
+                                                <input type="hidden" name="user_id" value="<?php echo $staff['id']; ?>">
+                                                <button type="submit" name="delete_staff" class="btn btn-danger" 
+                                                        onclick="return confirm('Reject and delete this application permanently?')">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </section>
+
+            <!-- Active Staff List -->
+            <section class="card">
+                <div class="card-header">
+                    <h2>Active Staff Members</h2>
+                    <span class="status good"><?php echo count($active_staff); ?> Active</span>
+                </div>
+                
+                <?php if (empty($active_staff)): ?>
+                    <div style="text-align: center; padding: 30px;">
+                        <p style="color: #6c757d;">No active staff members yet.</p>
                     </div>
                 <?php else: ?>
                     <div class="table-container">
@@ -105,37 +173,27 @@ $staff_members = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($staff_members as $staff): ?>
+                                <?php foreach ($active_staff as $staff): ?>
                                 <tr>
                                     <td><?php echo $staff['id']; ?></td>
-                                    <td><strong><?php echo $staff['name']; ?></strong></td>
-                                    <td><?php echo $staff['username']; ?></td>
-                                    <td><?php echo $staff['email']; ?></td>
-                                    <td><?php echo $staff['phone']; ?></td>
+                                    <td><strong><?php echo htmlspecialchars($staff['name']); ?></strong></td>
+                                    <td><?php echo htmlspecialchars($staff['username']); ?></td>
+                                    <td><?php echo htmlspecialchars($staff['email']); ?></td>
+                                    <td><?php echo htmlspecialchars($staff['phone']); ?></td>
                                     <td>
-                                        <span class="status <?php echo $staff['status']; ?>">
+                                        <span class="status active">
                                             <?php echo ucfirst($staff['status']); ?>
                                         </span>
                                     </td>
                                     <td><?php echo date('M j, Y', strtotime($staff['created_at'])); ?></td>
                                     <td>
-                                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                                            <?php if ($staff['status'] === 'pending'): ?>
-                                                <form method="POST" style="display: inline;">
-                                                    <input type="hidden" name="user_id" value="<?php echo $staff['id']; ?>">
-                                                    <button type="submit" name="approve_staff" class="btn btn-primary">
-                                                        Approve
-                                                    </button>
-                                                </form>
-                                            <?php endif; ?>
-                                            <form method="POST" style="display: inline;">
-                                                <input type="hidden" name="user_id" value="<?php echo $staff['id']; ?>">
-                                                <button type="submit" name="delete_staff" class="btn btn-danger" 
-                                                        onclick="return confirm('Are you sure you want to delete this staff member?')">
-                                                    Delete
-                                                </button>
-                                            </form>
-                                        </div>
+                                        <form method="POST" style="display: inline;">
+                                            <input type="hidden" name="user_id" value="<?php echo $staff['id']; ?>">
+                                            <button type="submit" name="delete_staff" class="btn btn-danger btn-sm" 
+                                                    onclick="return confirm('Are you sure you want to delete this staff member?')">
+                                                <i class="fas fa-trash"></i> Remove
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>

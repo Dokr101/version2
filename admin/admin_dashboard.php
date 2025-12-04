@@ -66,7 +66,11 @@ $room_stats = $stmt->fetch(PDO::FETCH_ASSOC);
             </div>
             <ul class="sidebar-menu">
                 <li><a href="/version2/admin/admin_dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="/version2/admin/manage_staff.php"><i class="fas fa-users-cog"></i> Manage Staff</a></li>
+                <li><a href="/version2/admin/manage_staff.php"><i class="fas fa-users-cog"></i> Manage Staff
+                    <?php if ($pending_staff > 0): ?>
+                        <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem; margin-left: 5px;"><?php echo $pending_staff; ?></span>
+                    <?php endif; ?>
+                </a></li>
                 <li><a href="/version2/admin/manage_rooms.php"><i class="fas fa-bed"></i> Manage Rooms</a></li>
                 <li><a href="/version2/bookings.php"><i class="fas fa-calendar-check"></i> All Bookings</a></li>
                 <li><a href="/version2/admin/payments.php"><i class="fas fa-credit-card"></i> Payment Records</a></li>
@@ -104,10 +108,17 @@ $room_stats = $stmt->fetch(PDO::FETCH_ASSOC);
                     <div class="stat-number"><?php echo $total_users; ?></div>
                     <div class="stat-label">Registered Guests</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number"><?php echo $pending_staff; ?></div>
-                    <div class="stat-label">Pending Staff</div>
-                </div>
+                <a href="/version2/admin/manage_staff.php" style="text-decoration: none; color: inherit;">
+                    <div class="stat-card" style="cursor: pointer; <?php echo $pending_staff > 0 ? 'border-left: 4px solid #ffc107;' : ''; ?>">
+                        <div class="stat-number" style="<?php echo $pending_staff > 0 ? 'color: #ffc107;' : ''; ?>"><?php echo $pending_staff; ?></div>
+                        <div class="stat-label">
+                            Pending Staff
+                            <?php if ($pending_staff > 0): ?>
+                                <i class="fas fa-exclamation-circle" style="color: #ffc107; margin-left: 5px;"></i>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </a>
             </div>
 
             <!-- Recent Bookings -->
