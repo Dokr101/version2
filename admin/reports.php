@@ -13,8 +13,8 @@ $stmt = $pdo->prepare("
         SUM(total_price) as total_revenue,
         AVG(total_price) as average_booking_value
     FROM bookings 
-    WHERE status IN ('confirmed', 'checked_in', 'checked_out') 
-    AND created_at BETWEEN ? AND ?
+    WHERE status IN ('pending', 'confirmed', 'checked_in', 'checked_out') 
+    AND DATE(created_at) >= ? AND DATE(created_at) <= ?
 ");
 $stmt->execute([$start_date, $end_date]);
 $report_data = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -24,8 +24,8 @@ $stmt = $pdo->prepare("
     SELECT r.type, COUNT(b.booking_id) as booking_count, SUM(b.total_price) as revenue
     FROM bookings b
     JOIN rooms r ON b.room_id = r.room_id
-    WHERE b.status IN ('confirmed', 'checked_in', 'checked_out') 
-    AND b.created_at BETWEEN ? AND ?
+    WHERE b.status IN ('pending', 'confirmed', 'checked_in', 'checked_out') 
+    AND DATE(b.created_at) >= ? AND DATE(b.created_at) <= ?
     GROUP BY r.type
     ORDER BY revenue DESC
 ");
@@ -40,7 +40,7 @@ $stmt = $pdo->prepare("
         COUNT(*) as booking_count,
         SUM(total_price) as revenue
     FROM bookings 
-    WHERE status IN ('confirmed', 'checked_in', 'checked_out')
+    WHERE status IN ('pending', 'confirmed', 'checked_in', 'checked_out')
     AND YEAR(created_at) = ?
     GROUP BY month
     ORDER BY month

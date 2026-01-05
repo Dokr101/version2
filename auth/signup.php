@@ -80,17 +80,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $stmt = $pdo->prepare("INSERT INTO users (name, username, email, phone, password, role, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
         if ($stmt->execute([$name, $username, $email, $phone, $hashed_password, $role, $status])) {
-            if ($role === 'staff') {
-                $_SESSION['success'] = "Registration successful. Status: Awaiting Admin Approval ❗";
-            } else {
-                $_SESSION['success'] = "Registration successful. You're ready to login!";
-            }
-            header("Location: login.php");
+            // Set success registration flag with role info
+            $_SESSION['registration_success'] = true;
+            $_SESSION['registered_role'] = $role;
+            $_SESSION['registered_name'] = $name;
+            header("Location: signup.php");
             exit();
         } else {
             $errors[] = "Something went wrong. Please try again.";
         }
     }
+}
+?>
+
+<?php
+// Check if registration was successful
+$show_success_modal = false;
+$success_role = '';
+$success_name = '';
+if (isset($_SESSION['registration_success'])) {
+    $show_success_modal = true;
+    $success_role = $_SESSION['registered_role'];
+    $success_name = $_SESSION['registered_name'];
+    // Clear the session variables
+    unset($_SESSION['registration_success']);
+    unset($_SESSION['registered_role']);
+    unset($_SESSION['registered_name']);
 }
 ?>
 
@@ -102,6 +117,112 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Sign Up - HRMS</title>
     <link rel="stylesheet" href="/version2/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* Success Modal Styles */
+        .success-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .success-modal.show {
+            display: flex;
+        }
+        
+        .success-modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.4s ease;
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
+        
+        .success-icon.guest {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            animation: scaleIn 0.5s ease 0.2s both;
+        }
+        
+        .success-icon.staff {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: white;
+            animation: pulse 1.5s ease infinite;
+        }
+        
+        .success-modal h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+        
+        .success-modal p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        .success-modal .redirect-text {
+            color: #999;
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="auth-container">
@@ -167,7 +288,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <option value="guest" <?php echo (isset($_POST['role']) && $_POST['role'] === 'guest') ? 'selected' : ''; ?>>Guest</option>
                     <option value="staff" <?php echo (isset($_POST['role']) && $_POST['role'] === 'staff') ? 'selected' : ''; ?>>Hotel Staff</option>
                 </select>
-                <small class="form-text" id="role-help"></small>
             </div>
 
             <?php if (!empty($errors)): ?>
@@ -182,22 +302,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
     </div>
 
+    <!-- Success Modal -->
+    <div class="success-modal <?php echo $show_success_modal ? 'show' : ''; ?>" id="successModal">
+        <div class="success-modal-content">
+            <?php if ($success_role === 'guest'): ?>
+                <div class="success-icon guest">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h2>You're Ready to Go! 🎉</h2>
+                <p>Welcome aboard, <strong><?php echo htmlspecialchars($success_name); ?></strong>!<br>
+                Your account has been created successfully.</p>
+            <?php else: ?>
+                <div class="success-icon staff">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h2>Registration Submitted ⏳</h2>
+                <p>Thank you, <strong><?php echo htmlspecialchars($success_name); ?></strong>!<br>
+                Your account is awaiting for admin's approval.</p>
+            <?php endif; ?>
+            <button onclick="window.location.href='login.php'" class="btn btn-primary" style="margin-top: 20px; padding: 12px 40px;">Okay</button>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const roleSelect = document.getElementById('role');
-            const roleHelp = document.getElementById('role-help');
-            
-            roleSelect.addEventListener('change', function() {
-                if (this.value === 'staff') {
-                    roleHelp.textContent = "Status: Awaiting Admin Approval ❗";
-                    roleHelp.style.color = '#ffc107';
-                } else if (this.value === 'guest') {
-                    roleHelp.textContent = "You'll be ready to login immediately";
-                    roleHelp.style.color = '#28a745';
-                } else {
-                    roleHelp.textContent = "";
-                }
-            });
+
             
             // Trigger change event on page load if role is already selected
             if (roleSelect.value) {

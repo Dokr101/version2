@@ -25,9 +25,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "Amenities are required.";
         }
 
+        // Handle image upload
+        $image_url = null;
+        if (isset($_FILES['room_image']) && $_FILES['room_image']['error'] === UPLOAD_ERR_OK) {
+            $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            $max_size = 5 * 1024 * 1024; // 5MB
+            
+            $file_type = mime_content_type($_FILES['room_image']['tmp_name']);
+            $file_size = $_FILES['room_image']['size'];
+            
+            if (!in_array($file_type, $allowed_types)) {
+                $errors[] = "Invalid file type. Only JPG, PNG, and WEBP are allowed.";
+            } elseif ($file_size > $max_size) {
+                $errors[] = "File size too large. Maximum 5MB allowed.";
+            }
+        }
+
         if (empty($errors)) {
+            // First insert the room to get the room_id
             $stmt = $pdo->prepare("INSERT INTO rooms (type, price, description, amenities) VALUES (?, ?, ?, ?)");
             if ($stmt->execute([$type, $price, $description, $amenities])) {
+                $room_id = $pdo->lastInsertId();
+                
+                // Now upload the image if provided
+                if (isset($_FILES['room_image']) && $_FILES['room_image']['error'] === UPLOAD_ERR_OK) {
+                    $extension = pathinfo($_FILES['room_image']['name'], PATHINFO_EXTENSION);
+                    $filename = "room_{$room_id}_" . time() . ".{$extension}";
+                    $upload_path = "../uploads/rooms/{$filename}";
+                    
+                    if (move_uploaded_file($_FILES['room_image']['tmp_name'], $upload_path)) {
+                        $image_url = "/version2/uploads/rooms/{$filename}";
+                        // Update the room with image_url
+                        $stmt = $pdo->prepare("UPDATE rooms SET image_url = ? WHERE room_id = ?");
+                        $stmt->execute([$image_url, $room_id]);
+                    }
+                }
+                
                 $_SESSION['success'] = "Room added successfully!";
             } else {
                 $_SESSION['error'] = "Failed to add room.";
@@ -58,13 +91,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "Amenities are required.";
         }
 
-        if (empty($errors)) {
-            $stmt = $pdo->prepare("UPDATE rooms SET type = ?, price = ?, description = ?, amenities = ?, status = ? WHERE room_id = ?");
-            if ($stmt->execute([$type, $price, $description, $amenities, $status, $room_id])) {
-                $_SESSION['success'] = "Room updated successfully!";
-            } else {
-                $_SESSION['error'] = "Failed to update room.";
+        // Handle image upload for edit
+        if (isset($_FILES['room_image']) && $_FILES['room_image']['error'] === UPLOAD_ERR_OK) {
+            $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            $max_size = 5 * 1024 * 1024; // 5MB
+            
+            $file_type = mime_content_type($_FILES['room_image']['tmp_name']);
+            $file_size = $_FILES['room_image']['size'];
+            
+            if (!in_array($file_type, $allowed_types)) {
+                $errors[] = "Invalid file type. Only JPG, PNG, and WEBP are allowed.";
+            } elseif ($file_size > $max_size) {
+                $errors[] = "File size too large. Maximum 5MB allowed.";
             }
+        }
+
+        if (empty($errors)) {
+            // Handle new image upload
+            $image_url = null;
+            if (isset($_FILES['room_image']) && $_FILES['room_image']['error'] === UPLOAD_ERR_OK) {
+                // Get old image to delete it
+                $stmt = $pdo->prepare("SELECT image_url FROM rooms WHERE room_id = ?");
+                $stmt->execute([$room_id]);
+                $old_image = $stmt->fetchColumn();
+                
+                // Upload new image
+                $extension = pathinfo($_FILES['room_image']['name'], PATHINFO_EXTENSION);
+                $filename = "room_{$room_id}_" . time() . ".{$extension}";
+                $upload_path = "../uploads/rooms/{$filename}";
+                
+                if (move_uploaded_file($_FILES['room_image']['tmp_name'], $upload_path)) {
+                    $image_url = "/version2/uploads/rooms/{$filename}";
+                    
+                    // Delete old image file if exists
+                    if ($old_image && file_exists(".." . $old_image)) {
+                        unlink(".." . $old_image);
+                    }
+                    
+                    // Update with new image
+                    $stmt = $pdo->prepare("UPDATE rooms SET type = ?, price = ?, description = ?, amenities = ?, status = ?, image_url = ? WHERE room_id = ?");
+                    $stmt->execute([$type, $price, $description, $amenities, $status, $image_url, $room_id]);
+                }
+            } else {
+                // Update without changing image
+                $stmt = $pdo->prepare("UPDATE rooms SET type = ?, price = ?, description = ?, amenities = ?, status = ? WHERE room_id = ?");
+                $stmt->execute([$type, $price, $description, $amenities, $status, $room_id]);
+            }
+            
+            $_SESSION['success'] = "Room updated successfully!";
         } else {
             $_SESSION['error'] = implode(" ", $errors);
         }
@@ -79,8 +153,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($booking_count > 0) {
             $_SESSION['error'] = "Cannot delete room with existing bookings.";
         } else {
+            // Get image to delete it
+            $stmt = $pdo->prepare("SELECT image_url FROM rooms WHERE room_id = ?");
+            $stmt->execute([$room_id]);
+            $image_url = $stmt->fetchColumn();
+            
             $stmt = $pdo->prepare("DELETE FROM rooms WHERE room_id = ?");
             if ($stmt->execute([$room_id])) {
+                // Delete image file if exists
+                if ($image_url && file_exists(".." . $image_url)) {
+                    unlink(".." . $image_url);
+                }
                 $_SESSION['success'] = "Room deleted successfully!";
             } else {
                 $_SESSION['error'] = "Failed to delete room.";
@@ -147,7 +230,7 @@ $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="card-header">
                     <h2>Add New Room</h2>
                 </div>
-                <form method="POST" style="max-width: 600px;">
+                <form method="POST" enctype="multipart/form-data" style="max-width: 600px;">
                     <div class="form-group">
                         <label for="type">Room Type:</label>
                         <input type="text" id="type" name="type" class="form-control" required 
@@ -167,6 +250,11 @@ $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <label for="amenities">Amenities:</label>
                         <textarea id="amenities" name="amenities" class="form-control" rows="3" required 
                                   placeholder="List room amenities (comma separated)"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="room_image">Room Image (Optional):</label>
+                        <input type="file" id="room_image" name="room_image" class="form-control" accept="image/jpeg,image/jpg,image/png,image/webp">
+                        <small style="color: #6c757d; font-size: 0.85rem;">Max 5MB. Formats: JPG, PNG, WEBP</small>
                     </div>
                     <button type="submit" name="add_room" class="btn btn-primary">Add Room</button>
                 </form>
@@ -189,6 +277,7 @@ $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <thead>
                                 <tr>
                                     <th>Room ID</th>
+                                    <th>Image</th>
                                     <th>Type</th>
                                     <th>Price</th>
                                     <th>Description</th>
@@ -201,6 +290,16 @@ $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <?php foreach ($rooms as $room): ?>
                                 <tr>
                                     <td><?php echo $room['room_id']; ?></td>
+                                    <td>
+                                        <?php if (!empty($room['image_url'])): ?>
+                                            <img src="<?php echo htmlspecialchars($room['image_url']); ?>" 
+                                                 alt="<?php echo htmlspecialchars($room['type']); ?>" 
+                                                 style="width: 100px; height: 70px; object-fit: cover; border-radius: 4px;"
+                                                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%2270%22%3E%3Crect fill=%22%23ddd%22 width=%22100%22 height=%2270%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2212%22%3ENo Image%3C/text%3E%3C/svg%3E';">
+                                        <?php else: ?>
+                                            <span style="color: #6c757d; font-size: 0.85rem;">No image</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td><strong><?php echo $room['type']; ?></strong></td>
                                     <td>Rs.<?php echo number_format($room['price'], 2); ?></td>
                                     <td style="max-width: 300px;"><?php echo $room['description']; ?></td>
@@ -218,7 +317,8 @@ $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                     data-price="<?php echo $room['price']; ?>"
                                                     data-description="<?php echo htmlspecialchars($room['description']); ?>"
                                                     data-amenities="<?php echo htmlspecialchars($room['amenities']); ?>"
-                                                    data-status="<?php echo $room['status']; ?>">
+                                                    data-status="<?php echo $room['status']; ?>"
+                                                    data-image="<?php echo htmlspecialchars($room['image_url'] ?? ''); ?>">
                                                 Edit
                                             </button>
                                             <form method="POST" style="display: inline;">
@@ -245,7 +345,7 @@ $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Edit Room</h2>
-            <form id="editForm" method="POST">
+            <form id="editForm" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="room_id" id="edit_room_id">
                 <div class="form-group">
                     <label for="edit_type">Room Type:</label>
@@ -262,6 +362,15 @@ $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="form-group">
                     <label for="edit_amenities">Amenities:</label>
                     <textarea id="edit_amenities" name="amenities" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Current Image:</label>
+                    <div id="current_image_preview" style="margin-bottom: 10px;">
+                        <span style="color: #6c757d; font-size: 0.85rem;">No image uploaded</span>
+                    </div>
+                    <label for="edit_room_image">Change Image (Optional):</label>
+                    <input type="file" id="edit_room_image" name="room_image" class="form-control" accept="image/jpeg,image/jpg,image/png,image/webp">
+                    <small style="color: #6c757d; font-size: 0.85rem;">Max 5MB. Formats: JPG, PNG, WEBP. Leave empty to keep current image.</small>
                 </div>
                 <div class="form-group">
                     <label for="edit_status">Status:</label>
@@ -290,6 +399,7 @@ $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 const description = this.getAttribute('data-description');
                 const amenities = this.getAttribute('data-amenities');
                 const status = this.getAttribute('data-status');
+                const imageUrl = this.getAttribute('data-image');
 
                 document.getElementById('edit_room_id').value = roomId;
                 document.getElementById('edit_type').value = type;
@@ -297,6 +407,14 @@ $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 document.getElementById('edit_description').value = description;
                 document.getElementById('edit_amenities').value = amenities;
                 document.getElementById('edit_status').value = status;
+                
+                // Update image preview
+                const imagePreview = document.getElementById('current_image_preview');
+                if (imageUrl) {
+                    imagePreview.innerHTML = '<img src="' + imageUrl + '" style="max-width: 200px; height: auto; border-radius: 4px;">';
+                } else {
+                    imagePreview.innerHTML = '<span style="color: #6c757d; font-size: 0.85rem;">No image uploaded</span>';
+                }
 
                 editModal.style.display = 'block';
             });

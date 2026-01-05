@@ -81,8 +81,8 @@ require_once 'includes/config.php';
     <section class="why-choose-us">
         <div class="container">
             <div class="section-header">
-                <h2>Why Choose Us!</h2>
-                <p>Everything you need for a perfect stay experience</p>
+                <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 15px; color: var(--primary);">Why Choose Us!</h2>
+                <p style="font-size: 1.15rem; font-weight: 400; color: var(--secondary);">Everything you need for a perfect stay experience</p>
             </div>
             
             <div class="features-grid">
@@ -90,48 +90,48 @@ require_once 'includes/config.php';
                     <div class="feature-icon">
                         <i class="fas fa-wifi"></i>
                     </div>
-                    <h3>Free WiFi</h3>
-                    <p>High-speed internet connectivity in all rooms and common areas</p>
+                    <h3 style="font-size: 1.3rem; font-weight: 600; margin: 15px 0 10px; color: var(--primary-dark);">Free WiFi</h3>
+                    <p style="font-size: 1rem; line-height: 1.6;">High-speed internet connectivity in all rooms and common areas</p>
                 </div>
                 
                 <div class="feature-item">
                     <div class="feature-icon">
                         <i class="fas fa-coffee"></i>
                     </div>
-                    <h3>Breakfast Included</h3>
-                    <p>Complimentary breakfast buffet with fresh local ingredients</p>
+                    <h3 style="font-size: 1.3rem; font-weight: 600; margin: 15px 0 10px; color: var(--primary-dark);">Breakfast Included</h3>
+                    <p style="font-size: 1rem; line-height: 1.6;">Complimentary breakfast buffet with fresh local ingredients</p>
                 </div>
                 
                 <div class="feature-item">
                     <div class="feature-icon">
                         <i class="fas fa-car"></i>
                     </div>
-                    <h3>Free Parking</h3>
-                    <p>Secure parking facility available for all our guests</p>
+                    <h3 style="font-size: 1.3rem; font-weight: 600; margin: 15px 0 10px; color: var(--primary-dark);">Free Parking</h3>
+                    <p style="font-size: 1rem; line-height: 1.6;">Secure parking facility available for all our guests</p>
                 </div>
                 
                 <div class="feature-item">
                     <div class="feature-icon">
                         <i class="fas fa-shield-alt"></i>
                     </div>
-                    <h3>24/7 Security</h3>
-                    <p>Round-the-clock security service ensuring your safety</p>
+                    <h3 style="font-size: 1.3rem; font-weight: 600; margin: 15px 0 10px; color: var(--primary-dark);">24/7 Security</h3>
+                    <p style="font-size: 1rem; line-height: 1.6;">Round-the-clock security service ensuring your safety</p>
                 </div>
                 
                 <div class="feature-item">
                     <div class="feature-icon">
                         <i class="fas fa-calendar-check"></i>
                     </div>
-                    <h3>Flexible Booking</h3>
-                    <p>Easy booking process with flexible cancellation policies</p>
+                    <h3 style="font-size: 1.3rem; font-weight: 600; margin: 15px 0 10px; color: var(--primary-dark);">Flexible Booking</h3>
+                    <p style="font-size: 1rem; line-height: 1.6;">Easy booking process with flexible cancellation policies</p>
                 </div>
                 
                 <div class="feature-item">
                     <div class="feature-icon">
                         <i class="fas fa-bed"></i>
                     </div>
-                    <h3>Premium Rooms</h3>
-                    <p>Comfortable and spacious rooms with modern amenities</p>
+                    <h3 style="font-size: 1.3rem; font-weight: 600; margin: 15px 0 10px; color: var(--primary-dark);">Premium Rooms</h3>
+                    <p style="font-size: 1rem; line-height: 1.6;">Comfortable and spacious rooms with modern amenities</p>
                 </div>
             </div>
         </div>

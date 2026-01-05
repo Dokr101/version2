@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($user && password_verify($password, $user['password'])) {
             // Check if staff user is approved
             if ($user['role'] === 'staff' && $user['status'] !== 'active') {
-                $errors[] = "Your account is pending admin approval.";
+                $errors[] = "Your account is pending...\n Wait for admin's approval.";
             } else {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['name'] = $user['name'];

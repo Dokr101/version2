@@ -176,7 +176,13 @@ foreach ($rooms as $room) {
             <!-- Rooms Grid -->
             <div class="rooms-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; margin-top: 30px;">
                 <?php foreach ($rooms as $room): ?>
-                    <div class="card room-card" data-type="<?php echo $room['type']; ?>" data-price="<?php echo $room['price']; ?>">
+                <div class="card room-card" data-type="<?php echo $room['type']; ?>" data-price="<?php echo $room['price']; ?>">
+                        <?php if (!empty($room['image_url'])): ?>
+                            <div style="margin-bottom: 15px;">
+                                <img src="<?php echo $room['image_url']; ?>" alt="<?php echo $room['type']; ?> Room" 
+                                     style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
+                            </div>
+                        <?php endif; ?>
                         <h3 style="color: var(--primary); margin-bottom: 10px;"><?php echo $room['type']; ?> Room</h3>
                         <p class="price" style="font-size: 1.5rem; font-weight: bold; color: var(--success); margin-bottom: 15px;">
                             Rs.<?php echo $room['price']; ?>/night
