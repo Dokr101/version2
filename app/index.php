@@ -29,7 +29,7 @@ if (file_exists('dist/index.html')) {
     echo 'To build the application, run the following command in your terminal:';
     echo '</p>';
     echo '<pre style="background: #f4f4f4; padding: 15px; border-radius: 5px; display: inline-block; font-size: 1.1rem;">cd app && npm run build</pre>';
-    echo '<p style="margin-top: 30px;"><a href="http://localhost:5173" style="background: #5C2D91; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Vite Dev Server (http://localhost:5173)</a></p>';
+    echo '<p style="margin-top: 30px;"><a href="https://version2-3-juss.onrender.com" style="background: #5C2D91; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Vite Dev Server (https://version2-3-juss.onrender.com)</a></p>';
     echo '</div>';
 }
 ?>

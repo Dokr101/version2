@@ -1,19 +1,18 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/version2/app/dist/',
+  base: '/',
   server: {
     port: 5173,
     proxy: {
       '/version2/api': {
-        target: 'http://localhost',
+        target: 'https://version2-3-juss.onrender.com',
         changeOrigin: true,
       },
       '/version2/auth': {
-        target: 'http://localhost',
+        target: 'https://version2-3-juss.onrender.com',
         changeOrigin: true,
       }
     }
