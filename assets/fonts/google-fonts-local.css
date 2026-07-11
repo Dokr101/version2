@@ -1,0 +1,98 @@
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url(/version2/assets/fonts/07dabb19b170e3852ebdf10a85924e18.woff2) format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(/version2/assets/fonts/5a66f8ceb794f00a7f54c797a21283b3.woff2) format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(/version2/assets/fonts/efef4d9d61ac26570557ad601dea222a.woff2) format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(/version2/assets/fonts/3604d9d49b61fc3b7c29c4259c86ff89.woff2) format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(/version2/assets/fonts/02384cdf43e3d24b76c57c66dfd114bf.woff2) format('truetype');
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(/version2/assets/fonts/ec27347baaef350a626d943a8fab74c6.woff2) format('truetype');
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(/version2/assets/fonts/91bf4bd454b182f9e98cf4c96be8c8ba.woff2) format('truetype');
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(/version2/assets/fonts/555a1287914f9012e021a3b119eb30d7.woff2) format('truetype');
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(/version2/assets/fonts/1e531eb7e3e1e9744697b9dd01c254b4.woff2) format('truetype');
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url(/version2/assets/fonts/7bd74212042e2303e96e1e2a59c91153.woff2) format('truetype');
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(/version2/assets/fonts/41eae6f88194706e4cb26de3ac737d8a.woff2) format('truetype');
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(/version2/assets/fonts/2a496847b9018af565e71324a9cbc097.woff2) format('truetype');
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(/version2/assets/fonts/154dcc58b1e77916e556017f33cbcd2e.woff2) format('truetype');
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(/version2/assets/fonts/c611dfa86762dbed0a7fd1e3d5f1a36c.woff2) format('truetype');
+}

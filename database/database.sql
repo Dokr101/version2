@@ -1,6 +1,6 @@
 -- Create database
-CREATE DATABASE IF NOT EXISTS HRMS_9;
-USE HRMS_9;
+CREATE DATABASE IF NOT EXISTS hrms_9;
+USE hrms_9;     
 
 -- Users table with status field for staff approval
 CREATE TABLE IF NOT EXISTS users (
@@ -26,7 +26,8 @@ CREATE TABLE IF NOT EXISTS rooms (
     amenities TEXT,
     image_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    capacity INT NOT NULL DEFAULT 2 -- Added via migration: ALTER TABLE rooms ADD COLUMN capacity INT NOT NULL DEFAULT 2;
 );
 
 -- Bookings table
@@ -59,9 +60,9 @@ CREATE TABLE IF NOT EXISTS payments (
 );
 
 -- Insert sample admin user
--- Default password: admin123 (hashed)
+-- Default password: Admin@7878 (hashed)
 INSERT INTO users (name, username, email, phone, password, role, status) VALUES 
-('Admin User', 'admin', 'admin@hotel.com', '1234567890', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active');
+('Admin User', 'admin', 'admin@hotel.com', '1234567890', '$2y$12$GTTSpBAgEPASl7eB4Zo7GutH5l2jcr3o9RJRudzbZs8qHoHmVunGC', 'admin', 'active');
 
 -- Insert sample rooms
 INSERT INTO rooms (type, price, status, description, amenities) VALUES 
