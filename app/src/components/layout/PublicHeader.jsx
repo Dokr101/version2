@@ -15,7 +15,7 @@ export const PublicHeader = () => {
             <span>Back to Home</span>
           </a>
           <a 
-            href={`/version2/auth/login.php?redirect=${encodeURIComponent('/version2/app/guest/rooms')}`} 
+            href="/login" 
             className="btn btn-primary" 
             style={{ fontSize: '0.82rem', padding: '7px 14px' }}
           >

@@ -305,7 +305,7 @@ export const BrowseRooms = () => {
                       ) : (
                         <button 
                           type="button"
-                          onClick={() => window.location.href = '/version2/auth/login.php?redirect=/version2/app/guest/rooms'}
+                          onClick={() => window.location.href = '/login'}
                           className="btn btn-secondary w-full"
                         >
                           Login to Book

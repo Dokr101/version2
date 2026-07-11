@@ -17,7 +17,7 @@ export const DashboardResolver = () => {
           navigate('/guest/dashboard', { replace: true });
         }
       } else {
-        window.location.href = '/version2/auth/login.php?redirect=/version2/app/';
+        window.location.href = '/login';
       }
     }
   }, [user, loading, navigate]);
