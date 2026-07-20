@@ -103,7 +103,7 @@ export const AdminDashboard = () => {
                 <strong>{roomStats?.available || 0} ({availablePercentage}%)</strong>
               </div>
               <div className="progress-bar-bg">
-                <div className="progress-bar-fill avail-fill" style={{ width: `${availablePercentage}%` }}></div>
+                <div className="progress-bar-fill avail-fill" style={{ '--fill-width': `${availablePercentage}%` }}></div>
               </div>
             </div>
 
@@ -113,7 +113,7 @@ export const AdminDashboard = () => {
                 <strong>{roomStats?.occupied || 0} ({occupiedPercentage}%)</strong>
               </div>
               <div className="progress-bar-bg">
-                <div className="progress-bar-fill occupied-fill" style={{ width: `${occupiedPercentage}%` }}></div>
+                <div className="progress-bar-fill occupied-fill" style={{ '--fill-width': `${occupiedPercentage}%` }}></div>
               </div>
             </div>
 
@@ -123,7 +123,7 @@ export const AdminDashboard = () => {
                 <strong>{roomStats?.unavailable || 0} ({unavailablePercentage}%)</strong>
               </div>
               <div className="progress-bar-bg">
-                <div className="progress-bar-fill unavail-fill" style={{ width: `${unavailablePercentage}%` }}></div>
+                <div className="progress-bar-fill unavail-fill" style={{ '--fill-width': `${unavailablePercentage}%` }}></div>
               </div>
             </div>
           </div>
@@ -261,14 +261,22 @@ export const AdminDashboard = () => {
           overflow: hidden;
         }
 
+        @keyframes fillBar {
+          from { width: 0%; }
+          to   { width: var(--fill-width); }
+        }
+
         .progress-bar-fill {
           height: 100%;
           border-radius: 3px;
+          width: 0%; /* animation starts here; --fill-width is the target */
+          animation: fillBar 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          animation-delay: 0.2s;
         }
 
-        .avail-fill { background: var(--success); }
-        .occupied-fill { background: var(--primary-light); }
-        .unavail-fill { background: var(--danger); }
+        .avail-fill    { background: var(--success);        animation-delay: 0.20s; }
+        .occupied-fill { background: var(--primary-light); animation-delay: 0.35s; }
+        .unavail-fill  { background: var(--danger);         animation-delay: 0.50s; }
 
         .card-header-row {
           display: flex;

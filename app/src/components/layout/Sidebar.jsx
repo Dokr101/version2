@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useSidebar } from '../../contexts/SidebarContext';
 import { 
   LayoutDashboard, Bed, CalendarCheck, User, LogOut, Users, 
   CreditCard, BarChart3, CheckCircle, Hotel, ChevronLeft,
@@ -9,7 +10,8 @@ import {
 
 export const Sidebar = () => {
   const { user, logout } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, setCollapsed } = useSidebar();
+  const [pulsingLink, setPulsingLink] = useState(null);
   const location = useLocation();
 
   if (!user) return null;
@@ -51,39 +53,42 @@ export const Sidebar = () => {
         <div className="brand-icon">
           <Hotel size={18} />
         </div>
-        {!collapsed && (
-          <div className="brand-text">
-            <span className="brand-name">HRMS</span>
-            <span className="brand-role">{roleLabel}</span>
-          </div>
-        )}
+        <div className="brand-text brand-text-wrap">
+          <span className="brand-name">HRMS</span>
+          <span className="brand-role">{roleLabel}</span>
+        </div>
         <button 
           className="collapse-toggle" 
           onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {collapsed ? <Menu size={16} /> : <ChevronLeft size={16} />}
+          <ChevronLeft size={16} className="toggle-icon" />
         </button>
       </div>
 
       {/* Navigation */}
       <nav className="sidebar-nav">
-        {!collapsed && (
+        <div className="nav-section-wrapper">
           <span className="nav-section-label">Navigation</span>
-        )}
+        </div>
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
+          const isPulsing = pulsingLink === item.path;
           return (
             <NavLink
               key={item.name}
               to={item.path}
-              className={`nav-link ${isActive ? 'nav-link--active' : ''}`}
+              className={`nav-link ${isActive ? 'nav-link--active' : ''} ${isPulsing ? 'nav-link--pulse' : ''}`}
               title={collapsed ? item.name : undefined}
+              onClick={() => {
+                setPulsingLink(item.path);
+                setTimeout(() => setPulsingLink(null), 300);
+              }}
             >
               <span className="nav-link-indicator"></span>
               <Icon size={18} className="nav-link-icon" />
-              {!collapsed && <span className="nav-link-label">{item.name}</span>}
+              <span className="nav-link-label">{item.name}</span>
             </NavLink>
           );
         })}
@@ -95,22 +100,21 @@ export const Sidebar = () => {
           <div className="user-avatar">
             {user.name.charAt(0).toUpperCase()}
           </div>
-          {!collapsed && (
-            <div className="user-meta">
-              <span className="user-name">{user.name}</span>
-              <span className="user-role">{role}</span>
-            </div>
-          )}
+          <div className="user-meta user-meta-wrap">
+            <span className="user-name">{user.name}</span>
+            <span className="user-role">{role}</span>
+          </div>
         </div>
         <button onClick={logout} className="logout-btn" title="Sign out">
           <LogOut size={16} />
-          {!collapsed && <span>Sign Out</span>}
+          <span className="logout-label">Sign Out</span>
         </button>
       </div>
 
       <style>{`
         .sidebar {
           width: 240px;
+          min-width: 240px;
           height: 100vh;
           position: fixed;
           top: 0;
@@ -121,12 +125,14 @@ export const Sidebar = () => {
           flex-direction: column;
           z-index: 100;
           padding: 20px 12px;
-          transition: width var(--transition-normal);
+          transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                      min-width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
           overflow: hidden;
         }
 
         .sidebar--collapsed {
           width: 68px;
+          min-width: 68px;
         }
 
         /* Brand */
@@ -137,6 +143,11 @@ export const Sidebar = () => {
           padding: 0 8px;
           margin-bottom: 28px;
           position: relative;
+          transition: gap 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar--collapsed .sidebar-brand {
+          gap: 0;
         }
 
         .brand-icon {
@@ -155,6 +166,10 @@ export const Sidebar = () => {
           display: flex;
           flex-direction: column;
           overflow: hidden;
+        }
+
+        .brand-text-wrap {
+          transition: opacity 0.16s ease, transform 0.16s ease;
         }
 
         .brand-name {
@@ -188,16 +203,20 @@ export const Sidebar = () => {
           align-items: center;
           justify-content: center;
           transition: all var(--transition-fast);
-          opacity: 0;
-        }
-
-        .sidebar:hover .collapse-toggle {
           opacity: 1;
         }
 
         .collapse-toggle:hover {
           color: var(--text-primary);
           background: rgba(0,0,0,0.03);
+        }
+
+        .toggle-icon {
+          transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar--collapsed .toggle-icon {
+          transform: rotate(180deg);
         }
 
         /* Navigation */
@@ -208,6 +227,19 @@ export const Sidebar = () => {
           flex-grow: 1;
         }
 
+        .nav-section-wrapper {
+          max-height: 30px;
+          opacity: 1;
+          overflow: hidden;
+          transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar--collapsed .nav-section-wrapper {
+          max-height: 0;
+          opacity: 0;
+          pointer-events: none;
+        }
+
         .nav-section-label {
           font-size: 0.6rem;
           font-weight: 700;
@@ -216,6 +248,7 @@ export const Sidebar = () => {
           letter-spacing: 0.1em;
           padding: 0 12px;
           margin-bottom: 8px;
+          display: block;
         }
 
         .nav-link {
@@ -228,8 +261,38 @@ export const Sidebar = () => {
           border-radius: var(--border-radius-sm);
           font-size: 0.85rem;
           font-weight: 500;
-          transition: all var(--transition-fast);
+          transition: background-color 0.2s ease, color 0.2s ease, gap 0.28s cubic-bezier(0.4, 0, 0.2, 1);
           position: relative;
+          overflow: hidden;
+        }
+
+        .sidebar--collapsed .nav-link {
+          gap: 0;
+        }
+
+        /* Ripple/pulse animation on click */
+        .nav-link--pulse::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(34, 34, 34, 0.15);
+          border-radius: inherit;
+          pointer-events: none;
+          animation: navRipplePulse 0.3s ease-out;
+        }
+
+        @keyframes navRipplePulse {
+          0% {
+            opacity: 1;
+            transform: scale(0.9);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(1.05);
+          }
         }
 
         .nav-link-indicator {
@@ -239,9 +302,9 @@ export const Sidebar = () => {
           transform: translateY(-50%) scaleY(0);
           width: 3px;
           height: 20px;
-          background: var(--primary-light);
+          background: var(--primary);
           border-radius: 0 3px 3px 0;
-          transition: transform var(--transition-spring);
+          transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); /* spring */
         }
 
         .nav-link:hover {
@@ -258,19 +321,38 @@ export const Sidebar = () => {
           transform: translateY(-50%) scaleY(1);
         }
 
-        .nav-link--active .nav-link-icon {
-          color: var(--primary-dark);
+        .nav-link--active .nav-link-icon { 
+          color: var(--primary);
+          animation: iconBounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes iconBounce {
+          0%   { transform: scale(1); }
+          50%  { transform: scale(1.2); }
+          100% { transform: scale(1); }
+        }
+
+        .nav-link:hover .nav-link-icon {
+          transform: translateX(2px);
+          transition: transform 0.15s ease;
         }
 
         .nav-link-icon {
           color: var(--text-muted);
-          transition: color var(--transition-fast);
+          transition: color var(--transition-fast), transform var(--transition-fast);
           flex-shrink: 0;
         }
 
         .nav-link-label {
           white-space: nowrap;
           overflow: hidden;
+          /* collapse: fade out fast; expand: wait 0.1s for width to grow first */
+          transition: opacity 0.1s ease, transform 0.1s ease;
+        }
+
+        /* Re-entering labels wait for the sidebar to finish widening */
+        :not(.sidebar--collapsed) .nav-link-label {
+          transition: opacity 0.15s ease 0.1s, transform 0.15s ease 0.1s;
         }
 
         /* Footer */
@@ -288,9 +370,11 @@ export const Sidebar = () => {
           gap: 10px;
           padding: 6px 8px;
           border-radius: var(--border-radius-sm);
+          transition: gap 0.28s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .user-pill--collapsed {
+        .sidebar--collapsed .user-pill {
+          gap: 0;
           justify-content: center;
         }
 
@@ -312,6 +396,10 @@ export const Sidebar = () => {
           display: flex;
           flex-direction: column;
           overflow: hidden;
+        }
+
+        .user-meta-wrap {
+          transition: opacity 0.16s ease, transform 0.16s ease;
         }
 
         .user-name {
@@ -342,7 +430,11 @@ export const Sidebar = () => {
           cursor: pointer;
           font-size: 0.8rem;
           font-weight: 500;
-          transition: all var(--transition-fast);
+          transition: all var(--transition-fast), gap 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar--collapsed .logout-btn {
+          gap: 0;
         }
 
         .logout-btn:hover {
@@ -351,12 +443,98 @@ export const Sidebar = () => {
           border-color: rgba(239, 68, 68, 0.2);
         }
 
+        .logout-label {
+          transition: opacity 0.16s ease, transform 0.16s ease;
+        }
+
+        /* Collapsed Sidebar Transitions */
+        .sidebar--collapsed .brand-text-wrap {
+          opacity: 0;
+          transform: translateX(-4px);
+          width: 0;
+          pointer-events: none;
+          transition: opacity 0.16s ease, transform 0.16s ease;
+        }
+
+        .sidebar--collapsed .nav-link-label {
+          opacity: 0;
+          transform: translateX(-4px);
+          width: 0;
+          pointer-events: none;
+          transition: opacity 0.16s ease, transform 0.16s ease;
+        }
+
+        .sidebar--collapsed .user-meta-wrap {
+          opacity: 0;
+          transform: translateX(-4px);
+          width: 0;
+          pointer-events: none;
+          transition: opacity 0.16s ease, transform 0.16s ease;
+        }
+
+        .sidebar--collapsed .logout-label {
+          opacity: 0;
+          transform: translateX(-4px);
+          width: 0;
+          pointer-events: none;
+          transition: opacity 0.16s ease, transform 0.16s ease;
+        }
+
         @media (max-width: 768px) {
           .sidebar {
             width: 68px;
+            min-width: 68px;
           }
-          .brand-text, .nav-section-label, .nav-link-label, .user-meta, .logout-btn span {
-            display: none;
+          
+          .brand-text-wrap {
+            opacity: 0;
+            transform: translateX(-4px);
+            width: 0;
+            pointer-events: none;
+          }
+
+          .nav-link-label {
+            opacity: 0;
+            transform: translateX(-4px);
+            width: 0;
+            pointer-events: none;
+          }
+
+          .user-meta-wrap {
+            opacity: 0;
+            transform: translateX(-4px);
+            width: 0;
+            pointer-events: none;
+          }
+
+          .logout-label {
+            opacity: 0;
+            transform: translateX(-4px);
+            width: 0;
+            pointer-events: none;
+          }
+
+          .nav-section-wrapper {
+            max-height: 0;
+            opacity: 0;
+            pointer-events: none;
+          }
+
+          .toggle-icon {
+            transform: rotate(180deg);
+          }
+
+          .sidebar-brand {
+            gap: 0;
+          }
+
+          .user-pill {
+            gap: 0;
+            justify-content: center;
+          }
+
+          .logout-btn {
+            gap: 0;
           }
         }
       `}</style>

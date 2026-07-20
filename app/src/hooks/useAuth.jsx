@@ -7,7 +7,7 @@ axios.interceptors.response.use(
     const url = err.config?.url ?? '';
     if (err.response?.status === 401
         && !url.includes('session.php')) {
-      window.location.href = '/login';
+      window.location.href = '/version2/auth/login.php?redirect=/version2/app/';
     }
     return Promise.reject(err);
   }

@@ -1784,22 +1784,46 @@ tr:hover {
     font-weight: 600;
     font-family: 'Inter', sans-serif;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.15s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     box-shadow: none;
     margin-top: 4px;
+    position: relative;
+    overflow: hidden;
 }
 
 .auth-modal-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px var(--gray);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
 .auth-modal-btn:active {
-    transform: translateY(0);
+    transform: translateY(0px) scale(0.98);
+    box-shadow: none;
+    transition-duration: 0.08s;
+}
+
+/* Ripple burst on click */
+.auth-modal-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 0; height: 0;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease, opacity 0.4s ease;
+    opacity: 0;
+}
+
+.auth-modal-btn:active::after {
+    width: 260px;
+    height: 260px;
+    opacity: 0;
+    transition: 0s;
 }
 
 /* Footer text */

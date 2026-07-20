@@ -19,6 +19,30 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
+// ── CSRF helpers ────────────────────────────────────────────────────────────
+// generateCsrfToken(): returns a per-session token, creating one if absent.
+function generateCsrfToken(): string
+{
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+// validateCsrfToken(): call at the top of every POST handler.
+// Terminates with 403 if the submitted token is missing or wrong.
+function validateCsrfToken(): void
+{
+    $submitted = $_POST['csrf_token'] ?? '';
+    $expected  = $_SESSION['csrf_token'] ?? '';
+    if (!$expected || !hash_equals($expected, $submitted)) {
+        http_response_code(403);
+        die('403 Forbidden – CSRF token mismatch.');
+    }
+}
+// ────────────────────────────────────────────────────────────────────────────
+
+
 // Base path configuration for assets
 define('BASE_PATH', '/version2');
 

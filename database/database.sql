@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     guests INT DEFAULT 1,
     status ENUM('pending', 'confirmed', 'checked_in', 'checked_out', 'cancelled') DEFAULT 'pending',
     total_price DECIMAL(10,2),
+    tax_amount DECIMAL(10,2) DEFAULT 0.00, -- Added via migration: ALTER TABLE bookings ADD COLUMN tax_amount DECIMAL(10,2) DEFAULT 0.00;
     payment_status ENUM('pending', 'paid', 'refunded') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -57,6 +58,15 @@ CREATE TABLE IF NOT EXISTS payments (
     status ENUM('pending', 'completed', 'failed', 'refunded') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (booking_id) REFERENCES bookings(booking_id) ON DELETE CASCADE
+);
+
+-- Login attempts table (DB-backed brute-force lockout — not bypassable via cookie deletion)
+CREATE TABLE IF NOT EXISTS login_attempts (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    ip_address   VARCHAR(45) NOT NULL,
+    attempts     INT NOT NULL DEFAULT 1,
+    last_attempt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_ip (ip_address)
 );
 
 -- Insert sample admin user

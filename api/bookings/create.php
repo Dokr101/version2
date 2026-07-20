@@ -70,17 +70,20 @@ if ($existing_booking_count > 0) {
     sendError('Sorry, the room is not available for the selected dates.');
 }
 
-// Calculate total price
+// Calculate total price with 13% VAT
 $nights = (strtotime($checkout) - strtotime($checkin)) / (60 * 60 * 24);
-$total_price = $room['price'] * $nights;
+$total_price       = $room['price'] * $nights;  // pre-tax subtotal
+$tax_rate          = 0.13;
+$tax_amount        = $total_price * $tax_rate;
+$total_price_with_tax = $total_price + $tax_amount;
 
-// Create booking
+// Create booking (store tax-inclusive total and tax amount separately)
 $stmt = $pdo->prepare("
-    INSERT INTO bookings (user_id, room_id, checkin, checkout, guests, total_price, payment_status, status) 
-    VALUES (?, ?, ?, ?, ?, ?, 'pending', 'pending')
+    INSERT INTO bookings (user_id, room_id, checkin, checkout, guests, total_price, tax_amount, payment_status, status) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'pending')
 ");
 
-if ($stmt->execute([$user_id, $room_id, $checkin, $checkout, $guests, $total_price])) {
+if ($stmt->execute([$user_id, $room_id, $checkin, $checkout, $guests, $total_price_with_tax, $tax_amount])) {
     $booking_id = $pdo->lastInsertId();
     
     // Fetch user details for email notification
@@ -101,7 +104,8 @@ if ($stmt->execute([$user_id, $room_id, $checkin, $checkout, $guests, $total_pri
         $content .= "• Check-in: {$checkin}<br>";
         $content .= "• Check-out: {$checkout}<br>";
         $content .= "• Guests: {$guests}<br>";
-        $content .= "• Total: Rs. " . number_format($total_price, 2) . "<br><br>";
+        $content .= "• Tax (13% VAT): Rs. " . number_format($tax_amount, 2) . "<br>";
+        $content .= "• Total (incl. tax): Rs. " . number_format($total_price_with_tax, 2) . "<br><br>";
         $content .= "Please complete your payment to fully confirm your reservation. Unpaid pending bookings expire after 15 minutes.<br><br>";
         $content .= "We look forward to hosting you!";
         $body = buildEmailTemplate('Booking Confirmation', $content);

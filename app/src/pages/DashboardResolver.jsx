@@ -7,26 +7,30 @@ export const DashboardResolver = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading) {
-      if (user) {
-        if (user.role === 'admin') {
+    if (loading) return;
+
+    if (user) {
+      switch (user.role) {
+        case 'admin':
           navigate('/admin/dashboard', { replace: true });
-        } else if (user.role === 'staff') {
+          break;
+        case 'staff':
           navigate('/staff/dashboard', { replace: true });
-        } else {
+          break;
+        default:
           navigate('/guest/dashboard', { replace: true });
-        }
-      } else {
-        window.location.href = '/login';
       }
+    } else {
+      const redirect = encodeURIComponent('/version2/app/');
+      window.location.href = `/version2/auth/login.php?redirect=${redirect}`;
     }
-  }, [user, loading, navigate]);
+  }, [loading, user, navigate]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '16px' }}>
-      <div className="spinner"></div>
-      <p style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Redirecting to portal...</p>
+    <div style={{ padding: 40 }}>
+      Redirecting...
     </div>
   );
 };
+
 export default DashboardResolver;

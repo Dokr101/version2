@@ -1,6 +1,12 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /version2/app/
+
+  # Serve Vite build assets directly from the dist folder
+  RewriteRule ^assets/(.*)$ dist/assets/$1 [L]
+  RewriteRule ^favicon\.svg$ dist/favicon.svg [L]
+  RewriteRule ^icons\.svg$ dist/icons.svg [L]
+
   RewriteRule ^index\.php$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d

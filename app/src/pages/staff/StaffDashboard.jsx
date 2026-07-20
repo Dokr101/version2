@@ -52,116 +52,275 @@ export const StaffDashboard = () => {
     }
   };
 
-  const handleDownloadInvoice = (booking) => {
-    try {
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a5'
-      });
+  // ============================================================
+// REPLACE the entire handleDownloadInvoice function in
+// app/src/pages/staff/StaffDashboard.jsx
+//
+// The API already returns: guest_name, guest_email, guest_phone,
+// room_id, room_type, checkin, checkout, guests, total_price,
+// payment_status, booking_id
+//
+// Nights and per-night rate are calculated from total_price.
+// Service charge (10%) and VAT (13%) are calculated from base.
+// ============================================================
 
-      doc.setFillColor(92, 45, 145);
-      doc.rect(0, 0, 148, 35, 'F');
+const handleDownloadInvoice = (booking) => {
+  try {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'   // A4 gives more room for the charges table
+    });
 
-      doc.setTextColor(255, 255, 255);
+    const W = 210; // A4 width
+    const margin = 16;
+    const col2 = 120; // right column x
+
+    // ── HEADER BAND ─────────────────────────────────────────
+    doc.setFillColor(26, 26, 26);          // near-black, not purple
+    doc.rect(0, 0, W, 42, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('HRMS', margin, 18);
+
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(170, 170, 170);
+    doc.text('Hotel Room Management System', margin, 24);
+    doc.text('Thamel, Kathmandu 44600, Nepal', margin, 29);
+    doc.text('+977-1-4XXXXXX  |  info@hrms.com.np', margin, 34);
+
+    // Invoice label (top-right)
+    doc.setTextColor(170, 170, 170);
+    doc.setFontSize(7.5);
+    doc.text('INVOICE', col2, 16, { align: 'left' });
+    doc.setFont('Helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
+    doc.text(`#INV-${String(booking.booking_id).padStart(5, '0')}`, col2, 23, { align: 'left' });
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(170, 170, 170);
+    doc.text(`Issued: ${new Date().toLocaleDateString('en-US', { dateStyle: 'medium' })}`, col2, 29, { align: 'left' });
+
+    // Payment status badge
+    const isPaid = booking.payment_status === 'paid';
+    doc.setFillColor(isPaid ? 45 : 180, isPaid ? 106 : 70, isPaid ? 79 : 30);
+    doc.roundedRect(col2, 32, 28, 6, 1, 1, 'F');
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(isPaid ? 216 : 255, isPaid ? 243 : 220, isPaid ? 220 : 180);
+    doc.text(isPaid ? 'PAID' : 'PENDING', col2 + 14, 36.2, { align: 'center' });
+
+    // ── SECTION: BILLED TO + BOOKING DETAILS ────────────────
+    let y = 52;
+
+    // Left: Guest info
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text('BILLED TO', margin, y);
+
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(20, 20, 20);
+    doc.text(booking.guest_name, margin, y + 6);
+
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(80, 80, 80);
+    doc.text(booking.guest_email || '—', margin, y + 12);
+    doc.text(booking.guest_phone || '—', margin, y + 17);
+
+    // Right: Booking meta
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text('BOOKING REFERENCE', col2, y);
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(20, 20, 20);
+    doc.text(`#BK-${String(booking.booking_id).padStart(4, '0')}`, col2, y + 6);
+
+    // Room info
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text('ROOM ASSIGNED', col2, y + 14);
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(20, 20, 20);
+    doc.text(`${booking.room_type} Room — #${booking.room_id}`, col2, y + 20);
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`${booking.guests} Guest${booking.guests > 1 ? 's' : ''}`, col2, y + 26);
+
+    // ── STAY PERIOD ROW ──────────────────────────────────────
+    y += 34;
+    doc.setDrawColor(230, 230, 230);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, W - margin, y);
+    y += 8;
+
+    const checkinDate  = new Date(booking.checkin);
+    const checkoutDate = new Date(booking.checkout);
+    const nights = Math.round((checkoutDate - checkinDate) / (1000 * 60 * 60 * 24));
+    const nightlyRate = nights > 0 ? booking.total_price / nights : booking.total_price;
+
+    const fmtDate = (d) => d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    const stayItems = [
+      { label: 'CHECK-IN',   value: fmtDate(checkinDate)  },
+      { label: 'CHECK-OUT',  value: fmtDate(checkoutDate) },
+      { label: 'DURATION',   value: `${nights} Night${nights !== 1 ? 's' : ''}` },
+    ];
+
+    stayItems.forEach((item, i) => {
+      const x = margin + i * 58;
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(150, 150, 150);
+      doc.text(item.label, x, y);
       doc.setFont('Helvetica', 'bold');
-      doc.setFontSize(16);
-      doc.text('HRMS', 74, 15, { align: 'center' });
-      
+      doc.setFontSize(9);
+      doc.setTextColor(20, 20, 20);
+      doc.text(item.value, x, y + 6);
+    });
+
+    // ── CHARGES TABLE ────────────────────────────────────────
+    y += 20;
+    doc.setDrawColor(230, 230, 230);
+    doc.line(margin, y, W - margin, y);
+    y += 7;
+
+    // Table header
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text('DESCRIPTION',         margin,      y);
+    doc.text('QTY',                 112,         y, { align: 'center' });
+    doc.text('RATE (Rs.)',           140,         y, { align: 'right'  });
+    doc.text('AMOUNT (Rs.)',         W - margin,  y, { align: 'right'  });
+
+    y += 4;
+    doc.setLineWidth(0.2);
+    doc.line(margin, y, W - margin, y);
+
+    // Calculate breakdown
+    const serviceCharge = booking.total_price * 0.10;
+    const vat           = booking.total_price * 0.13;
+    const grandTotal    = booking.total_price + serviceCharge + vat;
+
+    const fmt = (n) => n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const rows = [
+      {
+        desc: `${booking.room_type} Room — nightly accommodation`,
+        qty: `${nights} night${nights !== 1 ? 's' : ''}`,
+        rate: fmt(nightlyRate),
+        amount: fmt(booking.total_price)
+      },
+      {
+        desc: 'Service charge (10%)',
+        qty: '—',
+        rate: '',
+        amount: fmt(serviceCharge)
+      },
+      {
+        desc: 'VAT (13%)',
+        qty: '—',
+        rate: '',
+        amount: fmt(vat)
+      },
+    ];
+
+    rows.forEach((row) => {
+      y += 9;
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(40, 40, 40);
+      doc.text(row.desc,            margin,      y);
+      doc.setTextColor(100, 100, 100);
+      doc.text(row.qty,             112,         y, { align: 'center' });
+      doc.text(row.rate,            140,         y, { align: 'right'  });
+      doc.setFont('Helvetica', 'bold');
+      doc.setTextColor(20, 20, 20);
+      doc.text(row.amount,          W - margin,  y, { align: 'right'  });
+      doc.setLineWidth(0.15);
+      doc.setDrawColor(240, 240, 240);
+      doc.line(margin, y + 2.5, W - margin, y + 2.5);
+    });
+
+    // ── TOTAL ROW ────────────────────────────────────────────
+    y += 14;
+    doc.setFillColor(248, 248, 246);
+    doc.rect(margin, y - 5, W - margin * 2, 14, 'F');
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(100, 100, 100);
+    doc.text('TOTAL AMOUNT DUE', margin + 3, y + 3);
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(26, 26, 26);
+    doc.text(`Rs. ${fmt(grandTotal)}`, W - margin, y + 3, { align: 'right' });
+
+    // ── PAYMENT INFO ─────────────────────────────────────────
+    y += 22;
+    doc.setDrawColor(230, 230, 230);
+    doc.line(margin, y, W - margin, y);
+    y += 7;
+
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text('PAYMENT INFORMATION', margin, y);
+    y += 6;
+
+    const paymentRows = [
+      ['Method',          'Khalti (Online Payment)'],
+      ['Payment Status',  isPaid ? 'Paid in full' : booking.payment_status],
+      ['Transaction ID',  booking.transaction_id || 'N/A'],
+    ];
+
+    paymentRows.forEach(([label, value]) => {
       doc.setFont('Helvetica', 'normal');
       doc.setFontSize(8);
-      doc.text('GUEST INVOICE STATEMENT', 74, 22, { align: 'center' });
-
-      doc.setDrawColor(229, 231, 235);
-      doc.setFillColor(255, 255, 255);
-      doc.roundedRect(10, 42, 128, 140, 2, 2, 'FD');
-
+      doc.setTextColor(120, 120, 120);
+      doc.text(label, margin, y);
       doc.setFont('Helvetica', 'bold');
-      doc.setFontSize(11);
-      doc.setTextColor(92, 45, 145);
-      doc.text('FOLIO SUMMARY', 16, 52);
+      doc.setTextColor(label === 'Payment Status' && isPaid ? 45 : 20,
+                       label === 'Payment Status' && isPaid ? 106 : 20,
+                       label === 'Payment Status' && isPaid ? 79 : 20);
+      doc.text(value, margin + 40, y);
+      y += 6;
+    });
 
-      doc.setDrawColor(92, 45, 145);
-      doc.setLineWidth(0.3);
-      doc.line(16, 55, 132, 55);
+    // ── FOOTER ───────────────────────────────────────────────
+    y += 6;
+    doc.setDrawColor(230, 230, 230);
+    doc.line(margin, y, W - margin, y);
+    y += 6;
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(180, 180, 180);
+    const footerText =
+      'Thank you for choosing HRMS. This is a computer-generated invoice and does not require a signature. ' +
+      'For billing queries, contact billing@hrms.com.np or call our front desk.';
+    const footerLines = doc.splitTextToSize(footerText, W - margin * 2);
+    doc.text(footerLines, margin, y);
 
-      doc.setFontSize(8);
-      doc.setTextColor(100, 100, 100);
-      doc.setFont('Helvetica', 'normal');
+    // ── SAVE ─────────────────────────────────────────────────
+    doc.save(`Invoice_HRMS_${booking.booking_id}.pdf`);
+    toast.success('Invoice downloaded.');
 
-      doc.text('GUEST NAME:', 16, 64);
-      doc.setFont('Helvetica', 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text(booking.guest_name.toUpperCase(), 16, 69);
-
-      doc.setFont('Helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      doc.text('INVOICE NO:', 80, 64);
-      doc.setFont('Helvetica', 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text(`INV-${booking.booking_id}`, 80, 69);
-
-      doc.setFont('Helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      doc.text('ROOM TYPE:', 16, 80);
-      doc.setFont('Helvetica', 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text(`${booking.room_type} Room`, 16, 85);
-
-      doc.setFont('Helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      doc.text('ROOM NO:', 80, 80);
-      doc.setFont('Helvetica', 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text(`Room #${booking.room_id}`, 80, 85);
-
-      doc.setFont('Helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      doc.text('CHECK-IN:', 16, 96);
-      doc.setFont('Helvetica', 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text(new Date(booking.checkin).toLocaleDateString('en-US', { dateStyle: 'medium' }), 16, 101);
-
-      doc.setFont('Helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      doc.text('CHECK-OUT:', 80, 96);
-      doc.setFont('Helvetica', 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text(new Date(booking.checkout).toLocaleDateString('en-US', { dateStyle: 'medium' }), 80, 101);
-
-      doc.setFont('Helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      doc.text('BILLING METHOD:', 16, 112);
-      doc.setFont('Helvetica', 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text('Khalti (Online)', 16, 117);
-
-      doc.setFont('Helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      doc.text('STATUS:', 80, 112);
-      doc.setFont('Helvetica', 'bold');
-      doc.setTextColor(16, 185, 129);
-      doc.text('SETTLED', 80, 117);
-
-      doc.setDrawColor(229, 231, 235);
-      doc.line(16, 126, 132, 126);
-
-      doc.setFont('Helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      doc.text('TOTAL AMOUNT:', 16, 134);
-      
-      doc.setFont('Helvetica', 'bold');
-      doc.setFontSize(13);
-      doc.setTextColor(92, 45, 145);
-      doc.text(`Rs. ${booking.total_price.toLocaleString('en-IN')}`, 16, 141);
-
-      doc.save(`Invoice_HRMS_${booking.booking_id}.pdf`);
-      toast.success('Invoice downloaded.');
-    } catch (error) {
-      console.error('Invoice PDF error:', error);
-      toast.error('Failed to print invoice.');
-    }
-  };
+  } catch (error) {
+    console.error('Invoice PDF error:', error);
+    toast.error('Failed to generate invoice.');
+  }
+};
 
   if (loading) {
     return (

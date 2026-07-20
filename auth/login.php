@@ -26,15 +26,29 @@ if (isset($_SESSION['user_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Validate CSRF token before any other logic
+    validateCsrfToken();
+
     $errors = [];
 
-    // Brute force rate limiting lockout check
-    if (($_SESSION['login_attempts'] ?? 0) >= 5) {
-        $elapsed = time() - ($_SESSION['login_last_attempt'] ?? 0);
+    // DB-backed brute-force lockout (not bypassable by clearing cookies)
+    $ip = $_SERVER['REMOTE_ADDR'];
+    $stmtCheck = $pdo->prepare(
+        "SELECT attempts, last_attempt FROM login_attempts WHERE ip_address = ?"
+    );
+    $stmtCheck->execute([$ip]);
+    $attemptRow = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+    if ($attemptRow && $attemptRow['attempts'] >= 5) {
+        $elapsed = time() - strtotime($attemptRow['last_attempt']);
         if ($elapsed < 900) { // 15 minutes = 900 seconds
-            $errors[] = 'Too many failed attempts. Try again in ' . ceil((900 - $elapsed) / 60) . ' minutes.';
+            $errors[] = 'Too many failed attempts. Try again in '
+                . ceil((900 - $elapsed) / 60) . ' minutes.';
         } else {
-            $_SESSION['login_attempts'] = 0; // reset after 15 min
+            // Lockout window expired — reset the counter
+            $pdo->prepare("DELETE FROM login_attempts WHERE ip_address = ?")
+                ->execute([$ip]);
+            $attemptRow = null;
         }
     }
 
@@ -64,7 +78,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($user['role'] === 'staff' && $user['status'] !== 'active') {
                 $errors[] = "Your account is pending...\n Wait for admin's approval.";
             } else {
-                $_SESSION['login_attempts'] = 0; // Reset counter on successful login
+                // Clear DB lockout row for this IP on successful login
+                $pdo->prepare("DELETE FROM login_attempts WHERE ip_address = ?")
+                    ->execute([$ip]);
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['name'] = $user['name'];
                 $_SESSION['username'] = $user['username'];
@@ -91,8 +107,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit();
             }
         } else {
-            $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
-            $_SESSION['login_last_attempt'] = time();
+            // DB-backed failure counter: INSERT first attempt, increment on subsequent ones
+            $pdo->prepare(
+                "INSERT INTO login_attempts (ip_address, attempts, last_attempt)
+                 VALUES (?, 1, NOW())
+                 ON DUPLICATE KEY UPDATE
+                     attempts     = attempts + 1,
+                     last_attempt = NOW()"
+            )->execute([$ip]);
             $errors[] = "Invalid username or password.";
         }
     }
@@ -145,6 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- Form -->
         <form id="login-form" class="auth-modal-form" method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?= generateCsrfToken() ?>">
             <?php
             $redirect_val = '';
             if (isset($_GET['redirect'])) {

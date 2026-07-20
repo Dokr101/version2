@@ -14,6 +14,9 @@ header("Location: /version2/app/{$role}/dashboard");
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Validate CSRF token before any other logic
+    validateCsrfToken();
+
     $name = strtoupper(trim($_POST['name']));
     $username = strtolower(trim($_POST['username']));
     $email = trim($_POST['email']);
@@ -275,6 +278,7 @@ if (isset($_SESSION['registration_success'])) {
 
         <!-- Form -->
         <form id="signup-form" class="auth-modal-form" method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?= generateCsrfToken() ?>">
             <?php if (isset($_GET['redirect'])): ?>
                 <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($_GET['redirect']); ?>">
             <?php elseif (isset($_POST['redirect'])): ?>
