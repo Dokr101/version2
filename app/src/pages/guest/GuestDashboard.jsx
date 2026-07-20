@@ -5,10 +5,12 @@ import toast from 'react-hot-toast';
 import { StatCard } from '../../components/ui/StatCard';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { useAuth } from '../../hooks/useAuth';
-import { 
-  Calendar, DollarSign, CheckCircle2, Clock, 
-  ArrowRight, Bed, CreditCard
-} from 'lucide-react';
+  import { 
+    Calendar, DollarSign, CheckCircle2, Clock, 
+    ArrowRight, Bed, CreditCard, Download
+  } from 'lucide-react';
+  import { generateInvoice } from '../../utils/generateInvoice';
+
 
 export const GuestDashboard = () => {
   const { user } = useAuth();
@@ -113,8 +115,24 @@ export const GuestDashboard = () => {
                   </div>
                   <StatusBadge status={b.status} />
                 </div>
-                <div className="booking-row-actions">
-                  {b.status === 'pending' && (
+                  <div className="booking-row-actions">
+    {b.status === 'checked_out' && (
+      <button
+        onClick={() => generateInvoice({
+          ...b,
+          guest_name:  user.name,
+          guest_email: user.email,
+          guest_phone: user.phone
+        })}
+        className="btn btn-secondary"
+        style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+        title="Download Invoice"
+      >
+        <Download size={13} /> Invoice
+      </button>
+    )}
+    {b.status === 'pending' && (
+
                     <>
                       <a 
                         href={`/version2/guest/initiate_khalti_payment.php?booking_id=${b.booking_id}`}

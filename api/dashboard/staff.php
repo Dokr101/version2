@@ -6,15 +6,19 @@ $today = date('Y-m-d');
 
 // Today's checkins
 $stmt = $pdo->prepare("
-    SELECT
+        SELECT
     b.*,
     u.name AS guest_name,
     u.phone AS guest_phone,
     u.email AS guest_email,
-    r.type AS room_type 
+    r.type AS room_type,
+    p.transaction_id,
+    p.created_at AS payment_date
     FROM bookings b 
     JOIN users u ON b.user_id = u.id 
-    JOIN rooms r ON b.room_id = r.room_id 
+    JOIN rooms r ON b.room_id = r.room_id
+    LEFT JOIN payments p ON p.booking_id = b.booking_id
+        AND p.status = 'completed'
     WHERE b.checkin = ? AND b.status IN ('confirmed', 'checked_in')
     ORDER BY b.checkin
 ");
@@ -28,10 +32,14 @@ $stmt = $pdo->prepare("
     u.name AS guest_name,
     u.phone AS guest_phone,
     u.email AS guest_email,
-    r.type AS room_type 
+    r.type AS room_type,
+    p.transaction_id,
+    p.created_at AS payment_date
     FROM bookings b 
     JOIN users u ON b.user_id = u.id 
-    JOIN rooms r ON b.room_id = r.room_id 
+    JOIN rooms r ON b.room_id = r.room_id
+    LEFT JOIN payments p ON p.booking_id = b.booking_id
+        AND p.status = 'completed'
     WHERE b.checkout = ? AND b.status IN ('checked_in', 'checked_out')
     ORDER BY b.checkout
 ");
@@ -45,10 +53,14 @@ $stmt = $pdo->query("
     u.name AS guest_name,
     u.phone AS guest_phone,
     u.email AS guest_email,
-    r.type AS room_type 
+    r.type AS room_type,
+    p.transaction_id,
+    p.created_at AS payment_date
     FROM bookings b 
     JOIN users u ON b.user_id = u.id 
-    JOIN rooms r ON b.room_id = r.room_id 
+    JOIN rooms r ON b.room_id = r.room_id
+    LEFT JOIN payments p ON p.booking_id = b.booking_id
+        AND p.status = 'completed'
     WHERE b.status = 'pending'
     ORDER BY b.created_at DESC 
     LIMIT 5

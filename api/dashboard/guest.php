@@ -6,11 +6,19 @@ $user_id = $_SESSION['user_id'];
 
 // Get bookings
 $stmt = $pdo->prepare("
-    SELECT b.*, r.type as room_type, r.price as room_price 
-    FROM bookings b 
-    JOIN rooms r ON b.room_id = r.room_id 
-    WHERE b.user_id = ? 
+    SELECT
+        b.*,
+        r.type as room_type,
+        r.price as room_price,
+        p.transaction_id,
+        p.created_at AS payment_date
+    FROM bookings b
+    JOIN rooms r ON b.room_id = r.room_id
+    LEFT JOIN payments p ON p.booking_id = b.booking_id
+        AND p.status = 'completed'
+    WHERE b.user_id = ?
     ORDER BY b.created_at DESC
+
 ");
 $stmt->execute([$user_id]);
 $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
